@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Pacientes</title>
+</head>
+
+<body>
+
+<h1>Registro de Pacientes</h1>
+
+<form th:action="@{/pacientes}" method="post">
+
+    <label>Nombre:</label>
+    <input type="text" name="nombre" required><br>
+
+    <label>Especie:</label>
+    <input type="text" name="especie" required><br>
+
+    <label>Raza:</label>
+    <input type="text" name="raza" required><br>
+
+    <label>Edad:</label>
+    <input type="number" name="edad" required><br>
+
+    <label>Dueño:</label>
+    <input type="text" name="dueno" required><br>
+
+    <button type="submit">Registrar Paciente</button>
+</form>
+<div>
+    <form th:action="@{/home}" >
+        <button>Regresar</button>
+    </form>
+</div>
+
+<h2>Lista de Pacientes</h2>
+
+<table>
+    <tr>
+        <th>Nombre</th>
+        <th>Especie</th>
+        <th>Raza</th>
+        <th>Edad</th>
+        <th>Dueño</th>
+    </tr>
+
+    <tr th:each="p : ${pacientes}">
+        <td th:text="${p.nombre}"></td>
+        <td th:text="${p.especie}"></td>
+        <td th:text="${p.raza}"></td>
+        <td th:text="${p.edad}"></td>
+        <td th:text="${p.dueno}"></td>
+    </tr>
+
+</table>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+package com.duoc.veterinaria.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.duoc.veterinaria.model.Cita;
+import com.duoc.veterinaria.model.Paciente;
+import com.duoc.veterinaria.service.CitaService;
+import com.duoc.veterinaria.service.PacienteService;
+
+
+@Controller
+public class CitaController {
+    @Autowired
+    private CitaService citaService;
+    @Autowired
+    private PacienteService pacienteService;
+
+    @GetMapping("/citas")
+    public String listarCitas(Model model) {
+        model.addAttribute("citas", citaService.obtenerCitas());
+        model.addAttribute("pacientes", pacienteService.obtenerPacientes());
+        return "citas";
+    }
+
+    @GetMapping("/citas/nueva")
+    public String mostrarFormularioNuevaCita(Model model) {
+        model.addAttribute("cita", new Cita());
+        return "nueva_cita";
+    }
+
+    @PostMapping("/citas")
+    public String guardarCita(Long pacienteId, String fecha, String hora, String motivoConsulta, String veterinarioAsignado) {
+        Paciente paciente = pacienteService.buscarPorId(pacienteId);
+
+        Cita cita = new Cita();
+        cita.setPaciente(paciente);
+        cita.setFecha(fecha);
+        cita.setHora(hora);
+        cita.setMotivoConsulta(motivoConsulta);
+        cita.setVeterinarioAsignado(veterinarioAsignado);
+
+        citaService.guardarCita(cita);
+
+        return "redirect:/citas";
+    }
+}

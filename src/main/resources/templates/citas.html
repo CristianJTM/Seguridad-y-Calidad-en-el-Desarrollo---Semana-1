@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Citas</title>
+</head>
+
+<body>
+
+<h1>Registro de Citas</h1>
+
+<form th:action="@{/citas}" method="post">
+
+    <label>Paciente:</label>
+    <select name="pacienteId" required>
+        <option th:each="p : ${pacientes}"
+                th:value="${p.id}"
+                th:text="${p.nombre}">
+        </option>
+    </select><br>
+
+    <label>Fecha:</label>
+    <input type="date" name="fecha" required><br>
+
+    <label>Hora:</label>
+    <input type="time" name="hora" required><br>
+
+    <label>Motivo Consulta:</label>
+    <input type="text" name="motivoConsulta" required><br>
+
+    <label>Veterinario Asignado:</label>
+    <select name="veterinarioAsignado" required>
+        <option value="Veterinario 1">Veterinario 1</option>
+        <option value="Veterinario 2">Veterinario 2</option>
+        <option value="Veterinario 3">Veterinario 3</option>
+    </select><br>
+
+    <button type="submit">Registrar Cita</button>
+</form>
+
+<div>
+    <form th:action="@{/home}" >
+        <button>Regresar</button>
+    </form>
+</div>
+
+<h2>Lista de Citas</h2>
+
+<table>
+    <tr>
+        <th>Paciente</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Motivo Consulta</th>
+        <th>Veterinario Asignado</th>
+    </tr>
+
+    <tr th:each="c : ${citas}">
+        <td th:text="${c.paciente.nombre}"></td>
+        <td th:text="${c.fecha}"></td>
+        <td th:text="${c.hora}"></td>
+        <td th:text="${c.motivoConsulta}"></td>
+        <td th:text="${c.veterinarioAsignado}"></td>
+    </tr>
+</table>
