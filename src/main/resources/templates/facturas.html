@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Veterinaria - Facturas</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+
+<body>
+
+<h1>Registro de Facturas</h1>
+
+<form th:action="@{/facturas}" method="post">
+    <label>Costo Base (Consulta):</label>
+    <input type="number" name="costoBase" required min="0" step="0.01">
+
+    <button type="submit">Registrar Factura</button>
+</form>
+
+<div class="nav-buttons">
+    <form th:action="@{/home}">
+        <button>Regresar</button>
+    </form>
+</div>
+
+<h2>Lista de Facturas</h2>
+
+<div th:if="${facturas.isEmpty()}" class="message">
+    <p>No hay facturas registradas.</p>
+</div>
+
+<table th:unless="${facturas.isEmpty()}">
+    <tr>
+        <th>ID</th>
+        <th>Paciente</th>
+        <th>Descripción</th>
+        <th>Total</th>
+    </tr>
+    <tr th:each="f : ${facturas}">
+        <td th:text="${f.id}"></td>
+        <td th:text="${f.paciente != null ? f.paciente.nombre : 'N/A'}"></td>
+        <td th:text="${f.descripcion}"></td>
+        <td th:text="${f.costo}"></td>
+    </tr>
+</table>
+
+</body>
+</html>

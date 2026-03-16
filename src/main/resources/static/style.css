@@ -120,8 +120,19 @@ tr:hover {
 /* Nav home */
 .nav-buttons {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
     margin: 1rem 0;
+}
+
+.nav-buttons form,
+.nav-buttons a {
+    margin: 0;
+    display: inline-flex;
+}
+
+.nav-buttons button {
+    margin: 0;
 }
 
 /* Mensajes generales */

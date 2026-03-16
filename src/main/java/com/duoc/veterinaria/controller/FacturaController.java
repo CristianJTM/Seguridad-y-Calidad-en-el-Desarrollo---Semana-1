@@ -23,12 +23,12 @@ public class FacturaController {
     @GetMapping
     public String listarFacturas(Model model) {
         model.addAttribute("facturas", facturaService.obtenerTodas());
-        return "facturas/lista";
+        return "facturas";
     }
     
     @GetMapping("/nueva")
     public String mostrarFormularioNueva(Model model) {
-        return "facturas/nueva";
+        return "redirect:/facturas";
     }
     
     @PostMapping
@@ -41,12 +41,7 @@ public class FacturaController {
     
     @GetMapping("/{id}")
     public String verDetalles(@PathVariable Long id, Model model) {
-        facturaService.obtenerFactura(id).ifPresent(factura -> {
-            model.addAttribute("factura", factura);
-            model.addAttribute("descripcion", factura.getDescripcion());
-            model.addAttribute("total", factura.getCosto());
-        });
-        return "facturas/detalles";
+        return "redirect:/facturas";
     }
     
     @PostMapping("/{id}/medicamento")
@@ -57,7 +52,7 @@ public class FacturaController {
             facturaEntity.setFactura(facturaActualizada);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas/" + id;
+        return "redirect:/facturas";
     }
     
     @PostMapping("/{id}/tratamiento")
@@ -68,7 +63,7 @@ public class FacturaController {
             facturaEntity.setFactura(facturaActualizada);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas/" + id;
+        return "redirect:/facturas";
     }
     
     @PostMapping("/{id}/servicio")
@@ -80,7 +75,7 @@ public class FacturaController {
             facturaEntity.setFactura(facturaActualizada);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas/" + id;
+        return "redirect:/facturas";
     }
     
     @PostMapping("/{id}/eliminar")

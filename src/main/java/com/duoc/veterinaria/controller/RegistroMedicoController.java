@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.duoc.veterinaria.model.paciente.Paciente;
 import com.duoc.veterinaria.model.registro.Diagnostico;
 import com.duoc.veterinaria.model.registro.Medicamento;
 import com.duoc.veterinaria.model.registro.NotaMedica;
@@ -31,43 +32,51 @@ public class RegistroMedicoController {
     @GetMapping
     public String listarRegistros(Model model) {
         model.addAttribute("registros", registroMedicoService.obtenerTodos());
-        return "registros/lista";
+        model.addAttribute("pacientes", pacienteService.obtenerPacientes());
+        return "registros";
     }
     
     @GetMapping("/nuevo")
-    public String mostrarFormularioNuevo(Model model) {
-        model.addAttribute("registro", new RegistroMedico());
-        model.addAttribute("pacientes", pacienteService.obtenerPacientes());
-        return "registros/formulario";
+    public String mostrarFormularioNuevo() {
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping
-    public String crearRegistro(RegistroMedico registroMedico) {
-        registroMedicoService.crearRegistro(registroMedico);
+    public String crearRegistro(@RequestParam Long pacienteId,
+                                @RequestParam String veterinarioResponsable) {
+        Paciente paciente = pacienteService.buscarPorId(pacienteId);
+        if (paciente != null) {
+            RegistroMedico nuevoRegistro = new RegistroMedico(paciente, veterinarioResponsable);
+            registroMedicoService.crearRegistro(nuevoRegistro);
+        }
         return "redirect:/registros-medicos";
     }
     
     @GetMapping("/{id}")
-    public String verDetalles(@PathVariable Long id, Model model) {
-        registroMedicoService.obtenerRegistro(id).ifPresent(registro -> {
-            model.addAttribute("registro", registro);
-        });
-        return "registros/detalles";
+    public String verDetalles(@PathVariable Long id) {
+        return "redirect:/registros-medicos";
     }
     
     @GetMapping("/{id}/editar")
-    public String mostrarFormularioEditar(@PathVariable Long id, Model model) {
-        registroMedicoService.obtenerRegistro(id).ifPresent(registro -> {
-            model.addAttribute("registro", registro);
-        });
-        return "registros/editar";
+    public String mostrarFormularioEditar(@PathVariable Long id) {
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping("/{id}")
-    public String actualizarRegistro(@PathVariable Long id, RegistroMedico registroActualizado) {
-        registroActualizado.setId(id);
-        registroMedicoService.actualizarRegistro(registroActualizado);
-        return "redirect:/registros-medicos/" + id;
+    public String actualizarRegistro(@PathVariable Long id,
+                                     @RequestParam(required = false) Long pacienteId,
+                                     @RequestParam String veterinarioResponsable) {
+        registroMedicoService.obtenerRegistro(id).ifPresent(registroExistente -> {
+            registroExistente.setVeterinarioResponsable(veterinarioResponsable);
+            if (pacienteId != null) {
+                Paciente paciente = pacienteService.buscarPorId(pacienteId);
+                if (paciente != null) {
+                    registroExistente.setPaciente(paciente);
+                }
+            }
+            registroMedicoService.actualizarRegistro(registroExistente);
+        });
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping("/{id}/diagnostico")
@@ -76,7 +85,7 @@ public class RegistroMedicoController {
                                      @RequestParam String veterinario) {
         Diagnostico diagnostico = new Diagnostico(descripcion, LocalDateTime.now(), veterinario);
         registroMedicoService.agregarDiagnostico(id, diagnostico);
-        return "redirect:/registros-medicos/" + id;
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping("/{id}/tratamiento")
@@ -86,7 +95,7 @@ public class RegistroMedicoController {
                                     @RequestParam String instrucciones) {
         Tratamiento tratamiento = new Tratamiento(nombre, descripcion, null, null, instrucciones);
         registroMedicoService.agregarTratamiento(id, tratamiento);
-        return "redirect:/registros-medicos/" + id;
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping("/{id}/medicamento")
@@ -98,7 +107,7 @@ public class RegistroMedicoController {
                                     @RequestParam int duracionDias) {
         Medicamento medicamento = new Medicamento(nombre, dosis, frecuencia, viaAdministracion, duracionDias);
         registroMedicoService.agregarMedicamento(id, medicamento);
-        return "redirect:/registros-medicos/" + id;
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping("/{id}/nota")
@@ -107,7 +116,7 @@ public class RegistroMedicoController {
                              @RequestParam String autor) {
         NotaMedica nota = new NotaMedica(contenido, LocalDateTime.now(), autor);
         registroMedicoService.agregarNota(id, nota);
-        return "redirect:/registros-medicos/" + id;
+        return "redirect:/registros-medicos";
     }
     
     @PostMapping("/{id}/eliminar")
