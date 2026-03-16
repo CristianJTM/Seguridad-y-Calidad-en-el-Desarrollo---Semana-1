@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Veterinaria - Detalle de Factura</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+
+<body>
+
+<h1>Detalle de Factura</h1>
+
+<div class="message">
+    <p><strong>ID:</strong> <span th:text="${factura.id}"></span></p>
+    <p><strong>Mascota:</strong> <span th:text="${factura.paciente != null ? factura.paciente.nombre : 'N/A'}"></span></p>
+    <p><strong>Veterinario:</strong> <span th:text="${factura.veterinarioResponsable}"></span></p>
+    <p><strong>Descripción:</strong> <span th:text="${factura.descripcion}"></span></p>
+    <p><strong>Total:</strong> <span th:text="${factura.costo}"></span></p>
+</div>
+
+<h2>Editar Factura</h2>
+<form th:action="@{/facturas/{id}/actualizar(id=${factura.id})}" method="post">
+    <label>Mascota (Ficha):</label>
+    <select name="pacienteId" required>
+        <option th:each="p : ${pacientes}"
+                th:value="${p.id}"
+                th:text="${p.nombre}"
+                th:selected="${factura.paciente != null and factura.paciente.id == p.id}">
+        </option>
+    </select>
+
+    <label>Veterinario Responsable:</label>
+    <select name="veterinarioResponsable" required>
+        <option th:each="v : ${veterinarios}"
+                th:value="${v}"
+                th:text="${v}"
+                th:selected="${factura.veterinarioResponsable == v}">
+        </option>
+    </select>
+
+    <label>Notas:</label>
+    <textarea name="notas" th:text="${factura.notas}"></textarea>
+
+    <button type="submit">Guardar cambios</button>
+</form>
+
+<h2>Agregar Elementos (Decorator)</h2>
+
+<form th:action="@{/facturas/{id}/medicamento(id=${factura.id})}" method="post">
+    <label>Costo medicamento:</label>
+    <input type="number" name="costo" min="0" step="0.01" required>
+    <button type="submit">Agregar medicamento</button>
+</form>
+
+<form th:action="@{/facturas/{id}/insumo(id=${factura.id})}" method="post">
+    <label>Nombre insumo:</label>
+    <input type="text" name="nombreInsumo" required>
+    <label>Costo insumo:</label>
+    <input type="number" name="costo" min="0" step="0.01" required>
+    <button type="submit">Agregar insumo</button>
+</form>
+
+<form th:action="@{/facturas/{id}/servicio(id=${factura.id})}" method="post">
+    <label>Tipo servicio:</label>
+    <input type="text" name="tipoServicio" required>
+    <label>Costo servicio:</label>
+    <input type="number" name="costo" min="0" step="0.01" required>
+    <button type="submit">Agregar servicio</button>
+</form>
+
+<form th:action="@{/facturas/{id}/tratamiento(id=${factura.id})}" method="post">
+    <label>Costo tratamiento:</label>
+    <input type="number" name="costo" min="0" step="0.01" required>
+    <button type="submit">Agregar tratamiento</button>
+</form>
+
+<div class="nav-buttons">
+    <form th:action="@{/facturas/{id}/eliminar(id=${factura.id})}" method="post"
+          onsubmit="return confirm('¿Eliminar esta factura?');">
+        <button type="submit" class="danger-btn">Eliminar</button>
+    </form>
+
+    <form th:action="@{/facturas}">
+        <button type="submit">Regresar</button>
+    </form>
+</div>
+
+</body>
+</html>

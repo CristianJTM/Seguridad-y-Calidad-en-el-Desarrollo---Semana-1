@@ -1,6 +1,7 @@
 package com.duoc.veterinaria.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -28,11 +29,16 @@ public class RegistroMedicoController {
     
     @Autowired
     private PacienteService pacienteService;
+
+    private List<String> obtenerVeterinariosDisponibles() {
+        return List.of("Veterinario 1", "Veterinario 2", "Veterinario 3");
+    }
     
     @GetMapping
     public String listarRegistros(Model model) {
         model.addAttribute("registros", registroMedicoService.obtenerTodos());
         model.addAttribute("pacientes", pacienteService.obtenerPacientes());
+        model.addAttribute("veterinarios", obtenerVeterinariosDisponibles());
         return "registros";
     }
     
@@ -42,24 +48,76 @@ public class RegistroMedicoController {
     }
     
     @PostMapping
-    public String crearRegistro(@RequestParam Long pacienteId,
-                                @RequestParam String veterinarioResponsable) {
+    public String crearRegistro(@RequestParam(required = false) Long id,
+                                @RequestParam Long pacienteId,
+                                @RequestParam String veterinarioResponsable,
+                                @RequestParam(required = false) String diagnosticoDescripcion,
+                                @RequestParam(required = false) String tratamientoNombre,
+                                @RequestParam(required = false) String tratamientoDescripcion,
+                                @RequestParam(required = false) String tratamientoInstrucciones,
+                                @RequestParam(required = false) String medicamentoNombre,
+                                @RequestParam(required = false) String dosis,
+                                @RequestParam(required = false) String frecuencia,
+                                @RequestParam(required = false) String viaAdministracion,
+                                @RequestParam(required = false, defaultValue = "0") int duracionDias,
+                                @RequestParam(required = false) String notaContenido,
+                                @RequestParam(required = false) String notaAutor) {
         Paciente paciente = pacienteService.buscarPorId(pacienteId);
         if (paciente != null) {
             RegistroMedico nuevoRegistro = new RegistroMedico(paciente, veterinarioResponsable);
+            if (id != null) {
+                nuevoRegistro.setId(id);
+            }
+
+            if (diagnosticoDescripcion != null && !diagnosticoDescripcion.isBlank()) {
+                nuevoRegistro.agregarDiagnostico(new Diagnostico(diagnosticoDescripcion, LocalDateTime.now(), veterinarioResponsable));
+            }
+
+            if (tratamientoNombre != null && !tratamientoNombre.isBlank()) {
+                nuevoRegistro.agregarTratamiento(new Tratamiento(
+                        tratamientoNombre,
+                        tratamientoDescripcion == null ? "" : tratamientoDescripcion,
+                        null,
+                        null,
+                        tratamientoInstrucciones == null ? "" : tratamientoInstrucciones
+                ));
+            }
+
+            if (medicamentoNombre != null && !medicamentoNombre.isBlank()) {
+                nuevoRegistro.agregarMedicamento(new Medicamento(
+                        medicamentoNombre,
+                        dosis == null ? "" : dosis,
+                        frecuencia == null ? "" : frecuencia,
+                        viaAdministracion == null ? "" : viaAdministracion,
+                        duracionDias
+                ));
+            }
+
+            if (notaContenido != null && !notaContenido.isBlank()) {
+                String autorFinal = (notaAutor == null || notaAutor.isBlank()) ? veterinarioResponsable : notaAutor;
+                nuevoRegistro.agregarNota(new NotaMedica(notaContenido, LocalDateTime.now(), autorFinal));
+            }
+
             registroMedicoService.crearRegistro(nuevoRegistro);
         }
         return "redirect:/registros-medicos";
     }
     
     @GetMapping("/{id}")
-    public String verDetalles(@PathVariable Long id) {
-        return "redirect:/registros-medicos";
+    public String verDetalles(@PathVariable Long id, Model model) {
+        return registroMedicoService.obtenerRegistro(id)
+                .map(registro -> {
+                    model.addAttribute("registro", registro);
+                    model.addAttribute("pacientes", pacienteService.obtenerPacientes());
+                    model.addAttribute("veterinarios", obtenerVeterinariosDisponibles());
+                    return "DetalleRegistro";
+                })
+                .orElse("redirect:/registros-medicos");
     }
     
     @GetMapping("/{id}/editar")
     public String mostrarFormularioEditar(@PathVariable Long id) {
-        return "redirect:/registros-medicos";
+        return "redirect:/registros-medicos/" + id;
     }
     
     @PostMapping("/{id}")
@@ -76,7 +134,7 @@ public class RegistroMedicoController {
             }
             registroMedicoService.actualizarRegistro(registroExistente);
         });
-        return "redirect:/registros-medicos";
+        return "redirect:/registros-medicos/" + id;
     }
     
     @PostMapping("/{id}/diagnostico")
@@ -85,7 +143,7 @@ public class RegistroMedicoController {
                                      @RequestParam String veterinario) {
         Diagnostico diagnostico = new Diagnostico(descripcion, LocalDateTime.now(), veterinario);
         registroMedicoService.agregarDiagnostico(id, diagnostico);
-        return "redirect:/registros-medicos";
+        return "redirect:/registros-medicos/" + id;
     }
     
     @PostMapping("/{id}/tratamiento")
@@ -95,7 +153,7 @@ public class RegistroMedicoController {
                                     @RequestParam String instrucciones) {
         Tratamiento tratamiento = new Tratamiento(nombre, descripcion, null, null, instrucciones);
         registroMedicoService.agregarTratamiento(id, tratamiento);
-        return "redirect:/registros-medicos";
+        return "redirect:/registros-medicos/" + id;
     }
     
     @PostMapping("/{id}/medicamento")
@@ -107,7 +165,7 @@ public class RegistroMedicoController {
                                     @RequestParam int duracionDias) {
         Medicamento medicamento = new Medicamento(nombre, dosis, frecuencia, viaAdministracion, duracionDias);
         registroMedicoService.agregarMedicamento(id, medicamento);
-        return "redirect:/registros-medicos";
+        return "redirect:/registros-medicos/" + id;
     }
     
     @PostMapping("/{id}/nota")
@@ -116,7 +174,7 @@ public class RegistroMedicoController {
                              @RequestParam String autor) {
         NotaMedica nota = new NotaMedica(contenido, LocalDateTime.now(), autor);
         registroMedicoService.agregarNota(id, nota);
-        return "redirect:/registros-medicos";
+        return "redirect:/registros-medicos/" + id;
     }
     
     @PostMapping("/{id}/eliminar")

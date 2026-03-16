@@ -14,6 +14,10 @@ public class FacturaEntity implements Factura {
     
     private String descripcion;
 
+    private String veterinarioResponsable;
+
+    private String notas;
+
     public FacturaEntity() {
     }
 
@@ -71,6 +75,22 @@ public class FacturaEntity implements Factura {
 
     public String getDescripcionDetalle() {
         return descripcion;
+    }
+
+    public String getVeterinarioResponsable() {
+        return veterinarioResponsable;
+    }
+
+    public void setVeterinarioResponsable(String veterinarioResponsable) {
+        this.veterinarioResponsable = veterinarioResponsable;
+    }
+
+    public String getNotas() {
+        return notas;
+    }
+
+    public void setNotas(String notas) {
+        this.notas = notas;
     }
 
     public void actualizarTotal() {

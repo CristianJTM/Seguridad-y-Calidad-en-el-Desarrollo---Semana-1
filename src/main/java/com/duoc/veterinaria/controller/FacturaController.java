@@ -1,5 +1,7 @@
 package com.duoc.veterinaria.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.duoc.veterinaria.model.factura.Factura;
 import com.duoc.veterinaria.model.factura.FacturaEntity;
+import com.duoc.veterinaria.model.paciente.Paciente;
 import com.duoc.veterinaria.service.FacturaService;
+import com.duoc.veterinaria.service.PacienteService;
 
 @Controller
 @RequestMapping("/facturas")
@@ -19,10 +23,19 @@ public class FacturaController {
     
     @Autowired
     private FacturaService facturaService;
+
+    @Autowired
+    private PacienteService pacienteService;
+
+    private List<String> obtenerVeterinariosDisponibles() {
+        return List.of("Veterinario 1", "Veterinario 2", "Veterinario 3");
+    }
     
     @GetMapping
     public String listarFacturas(Model model) {
         model.addAttribute("facturas", facturaService.obtenerTodas());
+        model.addAttribute("pacientes", pacienteService.obtenerPacientes());
+        model.addAttribute("veterinarios", obtenerVeterinariosDisponibles());
         return "facturas";
     }
     
@@ -32,16 +45,62 @@ public class FacturaController {
     }
     
     @PostMapping
-    public String crearFactura(@RequestParam double costoBase) {
-        Factura facturaDeco = facturaService.crearFacturaBase(costoBase);
-        FacturaEntity facturaEntity = new FacturaEntity(null, facturaDeco);
+    public String crearFactura(@RequestParam Long pacienteId,
+                               @RequestParam String veterinarioResponsable,
+                               @RequestParam(required = false) String notas,
+                               @RequestParam double costoConsulta,
+                               @RequestParam(defaultValue = "0") double costoMedicamento,
+                               @RequestParam(defaultValue = "0") double costoInsumos,
+                               @RequestParam(defaultValue = "0") double costoServicio,
+                               @RequestParam(required = false) String tipoServicio) {
+        Paciente paciente = pacienteService.buscarPorId(pacienteId);
+        Factura facturaDeco = facturaService.crearFacturaBase(costoConsulta);
+
+        if (costoMedicamento > 0) {
+            facturaDeco = facturaService.agregarCostoMedicamento(facturaDeco, costoMedicamento);
+        }
+        if (costoInsumos > 0) {
+            facturaDeco = facturaService.agregarServicio(facturaDeco, costoInsumos, "Insumos");
+        }
+        if (costoServicio > 0) {
+            String servicio = (tipoServicio == null || tipoServicio.isBlank()) ? "Servicio Adicional" : tipoServicio;
+            facturaDeco = facturaService.agregarServicio(facturaDeco, costoServicio, servicio);
+        }
+
+        FacturaEntity facturaEntity = new FacturaEntity(paciente, facturaDeco);
+        facturaEntity.setVeterinarioResponsable(veterinarioResponsable);
+        facturaEntity.setNotas(notas);
         facturaService.guardarFactura(facturaEntity);
         return "redirect:/facturas";
     }
     
     @GetMapping("/{id}")
     public String verDetalles(@PathVariable Long id, Model model) {
-        return "redirect:/facturas";
+        return facturaService.obtenerFactura(id)
+                .map(factura -> {
+                    model.addAttribute("factura", factura);
+                    model.addAttribute("pacientes", pacienteService.obtenerPacientes());
+                    model.addAttribute("veterinarios", obtenerVeterinariosDisponibles());
+                    return "DetalleFactura";
+                })
+                .orElse("redirect:/facturas");
+    }
+
+    @PostMapping("/{id}/actualizar")
+    public String actualizarFactura(@PathVariable Long id,
+                                    @RequestParam Long pacienteId,
+                                    @RequestParam String veterinarioResponsable,
+                                    @RequestParam(required = false) String notas) {
+        facturaService.obtenerFactura(id).ifPresent(facturaEntity -> {
+            Paciente paciente = pacienteService.buscarPorId(pacienteId);
+            if (paciente != null) {
+                facturaEntity.setPaciente(paciente);
+            }
+            facturaEntity.setVeterinarioResponsable(veterinarioResponsable);
+            facturaEntity.setNotas(notas);
+            facturaService.guardarFactura(facturaEntity);
+        });
+        return "redirect:/facturas/" + id;
     }
     
     @PostMapping("/{id}/medicamento")
@@ -52,7 +111,7 @@ public class FacturaController {
             facturaEntity.setFactura(facturaActualizada);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas";
+        return "redirect:/facturas/" + id;
     }
     
     @PostMapping("/{id}/tratamiento")
@@ -63,7 +122,20 @@ public class FacturaController {
             facturaEntity.setFactura(facturaActualizada);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas";
+        return "redirect:/facturas/" + id;
+    }
+
+    @PostMapping("/{id}/insumo")
+    public String agregarInsumo(@PathVariable Long id,
+                                @RequestParam String nombreInsumo,
+                                @RequestParam double costo) {
+        facturaService.obtenerFactura(id).ifPresent(facturaEntity -> {
+            String descripcionInsumo = "Insumo: " + nombreInsumo;
+            Factura facturaActualizada = facturaService.agregarServicio(facturaEntity.getFactura(), costo, descripcionInsumo);
+            facturaEntity.setFactura(facturaActualizada);
+            facturaService.guardarFactura(facturaEntity);
+        });
+        return "redirect:/facturas/" + id;
     }
     
     @PostMapping("/{id}/servicio")
@@ -75,7 +147,7 @@ public class FacturaController {
             facturaEntity.setFactura(facturaActualizada);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas";
+        return "redirect:/facturas/" + id;
     }
     
     @PostMapping("/{id}/eliminar")
