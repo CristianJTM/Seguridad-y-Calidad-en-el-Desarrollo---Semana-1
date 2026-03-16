@@ -46,18 +46,31 @@ public class FacturaEntity implements Factura {
 
     public void setFactura(Factura factura) {
         this.factura = factura;
-        this.total = factura.getCosto();
-        this.descripcion = factura.getDescripcion();
+        if (factura != null) {
+            this.total = factura.getCosto();
+            this.descripcion = factura.getDescripcion();
+        } else {
+            this.total = 0.0;
+            this.descripcion = "";
+        }
     }
 
     @Override
     public String getDescripcion() {
-        return factura.getDescripcion();
+        return descripcion;
     }
 
     @Override
     public double getCosto() {
-        return factura.getCosto();
+        return total;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public String getDescripcionDetalle() {
+        return descripcion;
     }
 
     public void actualizarTotal() {
