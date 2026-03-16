@@ -26,6 +26,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/pacientes/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/citas").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/citas/**").hasAnyRole("USER", "VET", "ADMIN")
+                        .requestMatchers("/registros/**").hasAnyRole("VET", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form

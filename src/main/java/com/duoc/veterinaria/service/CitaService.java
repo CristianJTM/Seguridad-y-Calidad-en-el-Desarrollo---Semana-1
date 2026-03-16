@@ -20,4 +20,19 @@ public class CitaService {
     public void guardarCita(Cita cita) {
         citaRepository.guardarCita(cita);
     }
+
+    public Cita buscarPorId(Long id) {
+        List<Cita> citas = citaRepository.obtenerCitas();
+        for (Cita c : citas) {
+            if (c.getId().equals(id)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public void eliminarCita(Long id) {
+        List<Cita> citas = citaRepository.obtenerCitas();
+        citas.removeIf(c -> c.getId().equals(id));
+    }
 }

@@ -10,12 +10,14 @@ import com.duoc.veterinaria.model.Cita;
 @Repository
 public class CitaRepository {
     private List<Cita> citas = new ArrayList<>();
+    private Long contadorId = 1L;
 
     public List<Cita> obtenerCitas() {
         return citas;
     }
 
     public void guardarCita(Cita cita) {
+        cita.setId(contadorId++);
         citas.add(cita);
     }
 }

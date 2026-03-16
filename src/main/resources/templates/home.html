@@ -28,6 +28,9 @@
         <form th:action="@{/citas}">
             <button>Ver citas</button>
         </form>
+        <form th:action="@{/registros}" sec:authorize="hasAnyRole('VET','ADMIN')">
+            <button>Ver registros</button>
+        </form>
         <form th:action="@{/logout}" method="post">
             <button type="submit">Cerrar sesión</button>
         </form>

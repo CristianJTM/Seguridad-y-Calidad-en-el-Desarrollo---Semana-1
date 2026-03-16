@@ -3,6 +3,7 @@ package com.duoc.veterinaria.model;
 public class Cita {
     //El sistema debe permitir programar citas para los pacientes, incluyendo la fecha, hora, motivo de la consulta y veterinario asignado. Esta información se debe almacenar en memoria, siguiendo un esquema similar a los usuarios.
     private Paciente paciente;
+    private Long id;
     private String fecha;
     private String hora;
     private String motivoConsulta;
@@ -12,8 +13,9 @@ public class Cita {
     public Cita() {
     }
 
-    public Cita(Paciente paciente, String fecha, String hora, String motivoConsulta, String veterinarioAsignado, String usuario) {
+    public Cita(Paciente paciente, Long id, String fecha, String hora, String motivoConsulta, String veterinarioAsignado, String usuario) {
         this.paciente = paciente;
+        this.id = id;
         this.fecha = fecha;
         this.hora = hora;
         this.motivoConsulta = motivoConsulta;
@@ -27,6 +29,14 @@ public class Cita {
 
     public void setPaciente(Paciente paciente) {
         this.paciente = paciente;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getFecha() {
