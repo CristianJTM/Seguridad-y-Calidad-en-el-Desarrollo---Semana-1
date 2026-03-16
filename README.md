@@ -36,35 +36,33 @@ Importante consecuencia tecnica:
 La seguridad esta configurada en WebSecurityConfig con SecurityFilterChain.
 
 Reglas principales:
-
 - Publicas (permitAll): /, /home, /acceso-denegado, y archivos .css en raiz (/*.css).
-- /pacientes/**: requiere ROLE_USER o ROLE_ADMIN.
-- POST /citas: requiere ROLE_USER o ROLE_ADMIN.
+- /pacientes/**: requiere ROLE_USER, ROLE_VET o ROLE_ADMIN.
+- POST /citas: requiere ROLE_USER, ROLE_VET o ROLE_ADMIN.
 - /citas/** (resto): requiere ROLE_USER, ROLE_VET o ROLE_ADMIN.
+- /registros-medicos/**: requiere ROLE_VET o ROLE_ADMIN.
+- /facturas/**: requiere ROLE_ADMIN.
 - anyRequest().authenticated(): toda ruta no declarada explicitamente exige usuario autenticado.
 
 Autenticacion:
-
 - Form login personalizado en /login.
 - Redireccion de exito a /home.
 - Logout habilitado.
 - Pagina de acceso denegado: /acceso-denegado.
 
 Usuarios y roles en memoria:
-
 - user / password -> ROLE_USER
 - vet / password -> ROLE_VET
 - admin / password -> ROLE_USER, ROLE_VET, ROLE_ADMIN
 
 Importante (estado actual):
-
-- /facturas/** y /registros-medicos/** no tienen matcher especifico por rol en la config; por anyRequest().authenticated() pueden ser accesadas por cualquier usuario autenticado.
-- En la vista home.html, los botones de acceso a esas secciones se muestran solo para VET/ADMIN, pero eso es control visual, no restriccion backend definitiva.
+  - El backend y el frontend estan alineados en seguridad:
+  - Registros medicos: visibles y accesibles para VET y ADMIN.
+  - Facturas: visibles y accesibles solo para ADMIN.
 
 ### 2.c Framework y tecnologias utilizadas
 Stack principal:
-
-- Java 21
+- Java 17
 - Spring Boot 4.0.3
 - Spring MVC (controladores, rutas, modelos)
 - Thymeleaf (render de vistas server-side)
@@ -74,8 +72,7 @@ Stack principal:
 - Maven Wrapper (./mvnw) para build y ejecucion
 
 Patrones y diseño destacados:
-
-- MVC para separacion de capas.
+- MVC para separacion de capas con Citas, Pacientes, Registros y Facturas.
 - Repository pattern en memoria temporal.
 - Decorator en facturacion (Factura, FacturaBase, FacturaDecorator y cargos).
 
@@ -85,7 +82,6 @@ Patrones y diseño destacados:
 
 ### 3.a Rutas publicas
 Rutas accesibles sin autenticacion:
-
 - GET / y GET /home:
   - Muestran la pagina principal.
   - Si no hay sesion, ofrecen boton para ir a login.
@@ -101,13 +97,13 @@ Rutas accesibles sin autenticacion:
 
 #### Modulo Pacientes
 - GET /pacientes
-  - Roles: USER, ADMIN.
+  - Roles: USER, VET, ADMIN.
   - Funcionalidad: listar pacientes y mostrar formulario de alta.
 - POST /pacientes
-  - Roles: USER, ADMIN.
+  - Roles: USER, VET, ADMIN.
   - Funcionalidad: registrar nuevo paciente (nombre, especie, raza, edad, dueno).
 - GET /pacientes/nuevo
-  - Roles: USER, ADMIN.
+  - Roles: USER, VET, ADMIN.
   - Funcionalidad: ruta auxiliar para formulario (en el estado actual del frontend principal se usa la vista unificada de pacientes).
 
 #### Modulo Citas
@@ -115,7 +111,7 @@ Rutas accesibles sin autenticacion:
   - Roles: USER, VET, ADMIN.
   - Funcionalidad: listar citas y mostrar formulario de registro.
 - POST /citas
-  - Roles: USER, ADMIN.
+  - Roles: USER, VET, ADMIN.
   - Funcionalidad: crear cita con paciente, fecha, hora, motivo y veterinario asignado.
 - GET /citas/nueva
   - Roles: USER, VET, ADMIN.
@@ -123,69 +119,61 @@ Rutas accesibles sin autenticacion:
 
 #### Modulo Registros Medicos
 - GET /registros-medicos
-  - Seguridad efectiva actual: cualquier autenticado (USER, VET, ADMIN).
+  - Roles: VET, ADMIN.
   - Funcionalidad: vista principal de registros con formulario de alta y lista.
 - POST /registros-medicos
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: crear registro medico (paciente, veterinario) y opcionalmente diagnostico/tratamiento/medicamento/nota inicial.
 - GET /registros-medicos/{id}
-  - Seguridad efectiva actual: cualquier autenticado.
-  - Funcionalidad: ver detalle individual del registro (DetalleRegistro).
+  - Roles: VET, ADMIN.
+  - Funcionalidad: ver detalle individual del registro (detalle-registro-medico).
 - POST /registros-medicos/{id}
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: editar datos base (paciente y veterinario responsable).
 - POST /registros-medicos/{id}/diagnostico
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: agregar diagnostico.
 - POST /registros-medicos/{id}/tratamiento
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: agregar tratamiento.
 - POST /registros-medicos/{id}/medicamento
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: agregar medicamento.
 - POST /registros-medicos/{id}/nota
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: agregar nota medica.
 - POST /registros-medicos/{id}/eliminar
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: VET, ADMIN.
   - Funcionalidad: eliminar registro.
 
 #### Modulo Facturas
 - GET /facturas
-  - Seguridad efectiva actual: cualquier autenticado (USER, VET, ADMIN).
+  - Roles: ADMIN.
   - Funcionalidad: vista principal de facturas con formulario y lista.
 - POST /facturas
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: crear factura con mascota, veterinario, notas y costos iniciales.
   - Aplica Decorator segun montos: medicamento, insumos y servicio adicional.
 - GET /facturas/{id}
-  - Seguridad efectiva actual: cualquier autenticado.
-  - Funcionalidad: ver detalle individual de factura (DetalleFactura).
+  - Roles: ADMIN.
+  - Funcionalidad: ver detalle individual de factura (detalle-factura).
 - POST /facturas/{id}/actualizar
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: editar mascota, veterinario y notas.
 - POST /facturas/{id}/medicamento
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: agregar cargo de medicamento (Decorator).
 - POST /facturas/{id}/tratamiento
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: agregar cargo de tratamiento (Decorator).
 - POST /facturas/{id}/insumo
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: agregar cargo de insumo como servicio (Decorator).
 - POST /facturas/{id}/servicio
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: agregar cargo de servicio adicional (Decorator).
 - POST /facturas/{id}/eliminar
-  - Seguridad efectiva actual: cualquier autenticado.
+  - Roles: ADMIN.
   - Funcionalidad: eliminar factura.
 
 ---
-
-## Observaciones tecnicas finales
-
-- La aplicacion cumple flujo completo de gestion clinica y administrativa en memoria.
-- La seguridad por roles esta implementada, pero existe una diferencia entre:
-  - la visibilidad de botones en frontend (home.html), y
-  - la restriccion real en backend para /facturas/** y /registros-medicos/**.
-- Si se busca una politica estricta por rol tambien en backend, conviene agregar requestMatchers especificos para esos modulos en WebSecurityConfig.
