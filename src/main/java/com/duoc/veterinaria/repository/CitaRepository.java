@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.duoc.veterinaria.model.Cita;
+import com.duoc.veterinaria.model.cita.Cita;
 
 @Repository
 public class CitaRepository {

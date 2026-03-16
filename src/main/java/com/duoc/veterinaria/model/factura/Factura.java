@@ -1,5 +1,8 @@
 package com.duoc.veterinaria.model.factura;
 
-public class Factura {
+public interface Factura {
 
+    String getDescripcion();
+
+    double getCosto();
 }

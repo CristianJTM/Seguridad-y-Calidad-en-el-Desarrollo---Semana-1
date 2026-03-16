@@ -8,8 +8,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.duoc.veterinaria.model.Cita;
-import com.duoc.veterinaria.model.Paciente;
+import com.duoc.veterinaria.model.cita.Cita;
+import com.duoc.veterinaria.model.paciente.Paciente;
 import com.duoc.veterinaria.service.CitaService;
 import com.duoc.veterinaria.service.PacienteService;
 

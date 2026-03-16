@@ -4,8 +4,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.duoc.veterinaria.model.Paciente;
+import com.duoc.veterinaria.model.paciente.Paciente;
 import com.duoc.veterinaria.service.PacienteService;
+
+/*
+ * Cargar datos iniciales en la base de datos.
+ * Se utiliza CommandLineRunner para ejecutar el código después de que la aplicación se haya iniciado.
+ */
 
 @Configuration
 public class DataLoader {
