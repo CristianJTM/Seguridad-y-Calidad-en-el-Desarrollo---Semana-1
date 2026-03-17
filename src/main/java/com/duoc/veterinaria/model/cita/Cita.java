@@ -1,4 +1,6 @@
-package com.duoc.veterinaria.model;
+package com.duoc.veterinaria.model.cita;
+
+import com.duoc.veterinaria.model.paciente.Paciente;
 
 public class Cita {
     //El sistema debe permitir programar citas para los pacientes, incluyendo la fecha, hora, motivo de la consulta y veterinario asignado. Esta información se debe almacenar en memoria, siguiendo un esquema similar a los usuarios.

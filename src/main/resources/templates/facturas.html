@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Veterinaria - Facturas</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+
+<body>
+
+<h1>Registro de Facturas</h1>
+
+<form th:action="@{/facturas}" method="post">
+    <label>Mascota (Ficha):</label>
+    <select name="pacienteId" required>
+        <option value="">-- Seleccionar Mascota --</option>
+        <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nombre}"></option>
+    </select>
+
+    <label>Veterinario Responsable:</label>
+    <select name="veterinarioResponsable" required>
+        <option value="">-- Seleccionar Veterinario --</option>
+        <option th:each="v : ${veterinarios}" th:value="${v}" th:text="${v}"></option>
+    </select>
+
+    <label>Consulta (Costo Base):</label>
+    <input type="number" name="costoConsulta" required min="0" step="0.01">
+
+    <label>Medicamentos (Costo Inicial):</label>
+    <input type="number" name="costoMedicamento" min="0" step="0.01" value="0">
+
+    <label>Insumos (Costo Inicial):</label>
+    <input type="number" name="costoInsumos" min="0" step="0.01" value="0">
+
+    <label>Servicio Adicional:</label>
+    <input type="text" name="tipoServicio" placeholder="Ej: Radiografía">
+
+    <label>Costo Servicio Adicional:</label>
+    <input type="number" name="costoServicio" min="0" step="0.01" value="0">
+
+    <label>Notas:</label>
+    <textarea name="notas" placeholder="Notas clínicas o administrativas"></textarea>
+
+    <button type="submit">Registrar Factura</button>
+</form>
+
+<div class="nav-buttons">
+    <form th:action="@{/home}">
+        <button>Regresar</button>
+    </form>
+</div>
+
+<h2>Lista de Facturas</h2>
+
+<div th:if="${facturas.isEmpty()}" class="message">
+    <p>No hay facturas registradas.</p>
+</div>
+
+<table th:unless="${facturas.isEmpty()}">
+    <tr>
+        <th>ID</th>
+        <th>Mascota</th>
+        <th>Veterinario</th>
+        <th>Descripción</th>
+        <th>Total</th>
+        <th>Acciones</th>
+    </tr>
+    <tr th:each="f : ${facturas}">
+        <td th:text="${f.id}"></td>
+        <td th:text="${f.paciente != null ? f.paciente.nombre : 'N/A'}"></td>
+        <td th:text="${f.veterinarioResponsable}"></td>
+        <td th:text="${f.descripcion}"></td>
+        <td th:text="${f.costo}"></td>
+        <td>
+            <a th:href="@{/facturas/{id}(id=${f.id})}">
+                <button type="button">Ver detalle</button>
+            </a>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

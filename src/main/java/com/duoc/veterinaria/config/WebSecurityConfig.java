@@ -23,10 +23,11 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/", "/home", "/acceso-denegado").permitAll()
                         .requestMatchers("/*.css").permitAll()
-                        .requestMatchers("/pacientes/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/citas").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/pacientes/**").hasAnyRole("USER", "VET", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/citas").hasAnyRole("USER", "VET", "ADMIN")
                         .requestMatchers("/citas/**").hasAnyRole("USER", "VET", "ADMIN")
-                        .requestMatchers("/registros/**").hasAnyRole("VET", "ADMIN")
+                        .requestMatchers("/registros-medicos/**").hasAnyRole("VET", "ADMIN")
+                        .requestMatchers("/facturas/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form

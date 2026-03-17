@@ -25,8 +25,14 @@
         <form th:action="@{/pacientes}" sec:authorize="hasAnyRole('USER','ADMIN')">
             <button>Registrar pacientes</button>
         </form>
-        <form th:action="@{/citas}">
-            <button>Ver citas</button>
+        <form th:action="@{/citas}" sec:authorize="hasAnyRole('USER','VET','ADMIN')">
+            <button>Nueva cita</button>
+        </form>
+        <form th:action="@{/registros-medicos}" sec:authorize="hasAnyRole('VET','ADMIN')">
+            <button>Registros Médicos</button>
+        </form>
+        <form th:action="@{/facturas}" sec:authorize="hasRole('ADMIN')">
+            <button>Facturas</button>
         </form>
         <form th:action="@{/registros}" sec:authorize="hasAnyRole('VET','ADMIN')">
             <button>Ver registros</button>

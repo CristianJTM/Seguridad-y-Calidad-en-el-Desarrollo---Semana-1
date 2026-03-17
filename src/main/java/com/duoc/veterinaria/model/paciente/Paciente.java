@@ -1,4 +1,4 @@
-package com.duoc.veterinaria.model;
+package com.duoc.veterinaria.model.paciente;
 
 public class Paciente {
     //Los usuarios deben poder registrar nuevos pacientes, incluyendo su nombre, especie, raza, edad y dueño. Esta información se debe almacenar en memoria, siguiendo un esquema similar a los usuarios

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.duoc.veterinaria.model.Paciente;
+import com.duoc.veterinaria.model.paciente.Paciente;
 
 @Repository
 public class PacienteRepository {

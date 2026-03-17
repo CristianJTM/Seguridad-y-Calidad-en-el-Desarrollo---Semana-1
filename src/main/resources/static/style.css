@@ -120,6 +120,234 @@ tr:hover {
 /* Nav home */
 .nav-buttons {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
     margin: 1rem 0;
+}
+
+.nav-buttons form,
+.nav-buttons a {
+    margin: 0;
+    display: inline-flex;
+}
+
+.nav-buttons button {
+    margin: 0;
+}
+
+/* Mensajes generales */
+.message {
+    background-color: #e8f5ee;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #2e7d5b;
+    margin: 1rem 0;
+    color: #2d3436;
+}
+
+/* Registro Médico */
+.registro-info {
+    background-color: #f9fff8;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #d4edda;
+    margin: 1rem 0;
+}
+
+.registro-info h2 {
+    color: #2e7d5b;
+    margin-top: 0;
+}
+
+.registro-info p {
+    margin: 0.5rem 0;
+}
+
+/* Secciones Médicas */
+.medical-section {
+    background-color: #f9fff8;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #d4edda;
+    margin: 1.5rem 0;
+}
+
+.medical-section h3 {
+    color: #2e7d5b;
+    margin-bottom: 1rem;
+}
+
+.medical-section h4 {
+    color: #3a9d7c;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.add-form {
+    background-color: #f0f7f4;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.2rem;
+    border: 1px solid #b2dfcc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 80px;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #2e7d5b;
+    box-shadow: 0 0 0 2px rgba(46, 125, 91, 0.2);
+}
+
+/* Notas médicas */
+.notes-list {
+    background-color: #f0f7f4;
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+.note-item {
+    background-color: white;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-left: 4px solid #2e7d5b;
+    border-radius: 4px;
+}
+
+.note-item p {
+    margin: 0.3rem 0;
+}
+
+/* Facturas */
+.factura-container {
+    background-color: #f9fff8;
+    padding: 2rem;
+    border-radius: 8px;
+    border: 2px solid #2e7d5b;
+    margin: 1rem 0;
+}
+
+.factura-header {
+    border-bottom: 2px solid #d4edda;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.factura-header h2 {
+    color: #2e7d5b;
+    margin: 0 0 0.5rem 0;
+}
+
+.factura-desglose {
+    background-color: #f0f7f4;
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+.factura-desglose h3 {
+    color: #3a9d7c;
+    margin-bottom: 1rem;
+}
+
+.descripcion-completa {
+    font-style: italic;
+    line-height: 1.8;
+    color: #2d3436;
+}
+
+.factura-total {
+    background-color: #d4edda;
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin: 1.5rem 0;
+    text-align: right;
+}
+
+.factura-total h3 {
+    color: #2e7d5b;
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2e7d5b;
+}
+
+.total-amount {
+    font-size: 1.8rem;
+    color: #246347;
+}
+
+/* Agregar Cargos */
+.add-charges {
+    background-color: #f9fff8;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #d4edda;
+    margin: 1.5rem 0;
+}
+
+.add-charges h3 {
+    color: #2e7d5b;
+    margin-bottom: 1rem;
+}
+
+.charge-form-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.charge-form {
+    background-color: #f0f7f4;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #b2dfcc;
+}
+
+.charge-form h4 {
+    color: #3a9d7c;
+    margin: 0 0 1rem 0;
+}
+
+/* Zona de peligro */
+.danger-zone {
+    background-color: #fdecea;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 2px solid #c0392b;
+    margin: 2rem 0;
+}
+
+.danger-zone h3 {
+    color: #c0392b;
+    margin-bottom: 1rem;
+}
+
+.danger-btn {
+    background-color: #c0392b;
+    color: white;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+}
+
+.danger-btn:hover {
+    background-color: #a0291f;
 }
