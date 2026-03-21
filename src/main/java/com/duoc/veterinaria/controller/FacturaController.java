@@ -67,10 +67,12 @@ public class FacturaController {
             facturaDeco = facturaService.agregarServicio(facturaDeco, costoServicio, servicio);
         }
 
-        FacturaEntity facturaEntity = new FacturaEntity(paciente, facturaDeco);
-        facturaEntity.setVeterinarioResponsable(veterinarioResponsable);
-        facturaEntity.setNotas(notas);
-        facturaService.guardarFactura(facturaEntity);
+        facturaService.crearYGuardarFactura(
+                paciente,
+                facturaDeco,
+                veterinarioResponsable,
+                notas
+        );
         return "redirect:/facturas";
     }
     
@@ -106,22 +108,14 @@ public class FacturaController {
     @PostMapping("/{id}/medicamento")
     public String agregarMedicamento(@PathVariable Long id,
                                     @RequestParam double costo) {
-        facturaService.obtenerFactura(id).ifPresent(facturaEntity -> {
-            Factura facturaActualizada = facturaService.agregarCostoMedicamento(facturaEntity.getFactura(), costo);
-            facturaEntity.setFactura(facturaActualizada);
-            facturaService.guardarFactura(facturaEntity);
-        });
+        facturaService.agregarCosto(id, costo, "Medicamento");
         return "redirect:/facturas/" + id;
     }
     
     @PostMapping("/{id}/tratamiento")
     public String agregarTratamiento(@PathVariable Long id,
                                     @RequestParam double costo) {
-        facturaService.obtenerFactura(id).ifPresent(facturaEntity -> {
-            Factura facturaActualizada = facturaService.agregarTratamiento(facturaEntity.getFactura(), costo);
-            facturaEntity.setFactura(facturaActualizada);
-            facturaService.guardarFactura(facturaEntity);
-        });
+        facturaService.agregarCosto(id, costo, "Tratamiento");
         return "redirect:/facturas/" + id;
     }
 
@@ -129,12 +123,7 @@ public class FacturaController {
     public String agregarInsumo(@PathVariable Long id,
                                 @RequestParam String nombreInsumo,
                                 @RequestParam double costo) {
-        facturaService.obtenerFactura(id).ifPresent(facturaEntity -> {
-            String descripcionInsumo = "Insumo: " + nombreInsumo;
-            Factura facturaActualizada = facturaService.agregarServicio(facturaEntity.getFactura(), costo, descripcionInsumo);
-            facturaEntity.setFactura(facturaActualizada);
-            facturaService.guardarFactura(facturaEntity);
-        });
+        facturaService.agregarCosto(id, costo, "Insumo: " + nombreInsumo);
         return "redirect:/facturas/" + id;
     }
     
@@ -142,11 +131,7 @@ public class FacturaController {
     public String agregarServicio(@PathVariable Long id,
                                  @RequestParam double costo,
                                  @RequestParam String tipoServicio) {
-        facturaService.obtenerFactura(id).ifPresent(facturaEntity -> {
-            Factura facturaActualizada = facturaService.agregarServicio(facturaEntity.getFactura(), costo, tipoServicio);
-            facturaEntity.setFactura(facturaActualizada);
-            facturaService.guardarFactura(facturaEntity);
-        });
+        facturaService.agregarCosto(id, costo, tipoServicio);
         return "redirect:/facturas/" + id;
     }
     
