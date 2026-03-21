@@ -36,6 +36,16 @@ public class FacturaService {
     public Factura agregarServicio(Factura factura, double costo, String tipoServicio) {
         return new ServicioCargo(factura, costo, tipoServicio);
     }
+
+    public FacturaEntity crearYGuardarFactura(Paciente paciente, Factura factura,
+                                              String veterinario, String notas) {
+
+        FacturaEntity entity = new FacturaEntity(paciente, factura);
+        entity.setVeterinarioResponsable(veterinario);
+        entity.setNotas(notas);
+
+        return facturaRepository.save(entity);
+    }
     
     public FacturaEntity guardarFactura(FacturaEntity facturaEntity) {
         return facturaRepository.save(facturaEntity);
@@ -56,9 +66,13 @@ public class FacturaService {
     public void eliminarFactura(Long id) {
         facturaRepository.deleteById(id);
     }
-    
-    public double calcularTotal(Factura factura) {
-        return factura.getCosto();
+
+    public void agregarCosto(Long id, double costo, String descripcionExtra) {
+        facturaRepository.findById(id).ifPresent(f -> {
+            f.setTotal(f.getTotal() + costo);
+            f.setDescripcion(f.getDescripcion() + " + " + descripcionExtra);
+            facturaRepository.save(f);
+        });
     }
     
     public String obtenerDescripcionCompleta(Factura factura) {

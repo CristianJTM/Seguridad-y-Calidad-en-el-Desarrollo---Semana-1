@@ -1,15 +1,19 @@
 package com.duoc.veterinaria.model.factura;
 
 import com.duoc.veterinaria.model.paciente.Paciente;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "factura")
 public class FacturaEntity implements Factura {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @ManyToOne
+    @JoinColumn(name = "paciente_id")
     private Paciente paciente;
-    
-    private Factura factura;
-    
+
     private double total;
     
     private String descripcion;
@@ -23,17 +27,12 @@ public class FacturaEntity implements Factura {
 
     public FacturaEntity(Paciente paciente, Factura factura) {
         this.paciente = paciente;
-        this.factura = factura;
         this.total = factura.getCosto();
         this.descripcion = factura.getDescripcion();
     }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Paciente getPaciente() {
@@ -44,24 +43,12 @@ public class FacturaEntity implements Factura {
         this.paciente = paciente;
     }
 
-    public Factura getFactura() {
-        return factura;
+    public double getTotal() {
+        return total;
     }
 
-    public void setFactura(Factura factura) {
-        this.factura = factura;
-        if (factura != null) {
-            this.total = factura.getCosto();
-            this.descripcion = factura.getDescripcion();
-        } else {
-            this.total = 0.0;
-            this.descripcion = "";
-        }
-    }
-
-    @Override
-    public String getDescripcion() {
-        return descripcion;
+    public void setTotal(double total) {
+        this.total = total;
     }
 
     @Override
@@ -69,12 +56,13 @@ public class FacturaEntity implements Factura {
         return total;
     }
 
-    public double getTotal() {
-        return total;
+    @Override
+    public String getDescripcion() {
+        return descripcion;
     }
 
-    public String getDescripcionDetalle() {
-        return descripcion;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
     public String getVeterinarioResponsable() {
@@ -91,10 +79,5 @@ public class FacturaEntity implements Factura {
 
     public void setNotas(String notas) {
         this.notas = notas;
-    }
-
-    public void actualizarTotal() {
-        this.total = factura.getCosto();
-        this.descripcion = factura.getDescripcion();
     }
 }
