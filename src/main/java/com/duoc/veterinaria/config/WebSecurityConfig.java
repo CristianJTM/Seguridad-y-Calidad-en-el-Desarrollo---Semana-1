@@ -46,7 +46,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/home", "/acceso-denegado").permitAll()
+                        .requestMatchers("/", "/home", "/acceso-denegado", "/app.html").permitAll()
                         .requestMatchers("/*.css").permitAll()
                         .requestMatchers("/pacientes/**").hasAnyRole("USER", "VET", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/citas").hasAnyRole("USER", "VET", "ADMIN")
