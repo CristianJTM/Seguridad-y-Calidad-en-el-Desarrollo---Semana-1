@@ -1,6 +1,7 @@
 package com.duoc.veterinaria.model.paciente;
 
 import com.duoc.veterinaria.model.cita.Cita;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class Paciente {
     private String raza;
     private int edad;
     private String dueno;
+    @JsonIgnore
     @OneToMany(mappedBy = "paciente")
     private List<Cita> citas;
 
