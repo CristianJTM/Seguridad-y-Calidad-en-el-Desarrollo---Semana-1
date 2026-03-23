@@ -2,40 +2,50 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:latest
+    build:
+      context: ./docker/mysql
+      dockerfile: Dockerfile
     container_name: mysql-vet
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    env_file: .env
     ports:
       - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - veterinaria-network
+
   app:
     build:
       context: .
       dockerfile: docker/app/Dockerfile
     container_name: vet-app
     restart: always
+    env_file: .env
     ports:
       - "8080:8080"
-    environment:
-        SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-        SPRING_PROFILES_ACTIVE: production
-        DB_HOST: mysql
-        DB_PORT: 3306
-        DB_NAME: ${MYSQL_DATABASE}
-        DB_USER: ${MYSQL_USER}
-        DB_PASSWORD: ${MYSQL_PASSWORD}
     depends_on:
       - mysql
+    networks:
+      - veterinaria-network
+
   apache:
-    image: apache-proxy:latest
-    build: ./docker/apache
+    build:
+      context: ./docker/apache
+      dockerfile: Dockerfile
     container_name: apache-vet
     restart: always
     ports:
       - "443:443"
+      - "80:80"
     depends_on:
       - app
+    networks:
+      - veterinaria-network
+
+volumes:
+  mysql_data:
+
+networks:
+  veterinaria-network:
+    driver: bridge
