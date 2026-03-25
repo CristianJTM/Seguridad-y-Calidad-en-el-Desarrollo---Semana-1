@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros Médicos - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .loading { text-align: center; padding: 2rem; }
+        .actions-column { display: flex; gap: 0.3rem; }
+        .actions-column button { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <h1>Registros Médicos</h1>
+
+    <div class="nav-buttons">
+        <a href="/panel"><button>Volver al Panel</button></a>
+        <a href="/registro-medico/nuevo"><button>Nuevo Registro</button></a>
+        <button onclick="cargarRegistros()">Actualizar</button>
+    </div>
+
+    <div id="loading" class="loading hidden">Cargando registros médicos...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div id="registros-container">
+        <h2>Lista de Registros Médicos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Paciente</th>
+                    <th>Fecha</th>
+                    <th>Diagnóstico</th>
+                    <th>Veterinario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="registros-body">
+                <!-- Se llenará dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación y rol VET o ADMIN
+        requireAuth();
+        if (!hasAnyRole('VET', 'ADMIN')) {
+            window.location.href = '/acceso-denegado';
+        }
+
+        // Cargar registros al iniciar
+        cargarRegistros();
+
+        async function cargarRegistros() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const tbody = document.getElementById('registros-body');
+
+            loading.classList.remove('hidden');
+            error.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/registros-medicos', {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar registros médicos');
+                }
+
+                const registros = await response.json();
+                tbody.innerHTML = '';
+
+                if (registros.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay registros médicos</td></tr>';
+                    return;
+                }
+
+                registros.forEach(registro => {
+                    const tr = document.createElement('tr');
+                    const diagnostico = (registro.diagnostico || '').substring(0, 50) + '...';
+                    tr.innerHTML = `
+                        <td>${registro.id}</td>
+                        <td>${registro.paciente?.nombre || 'N/A'}</td>
+                        <td>${registro.fecha || 'N/A'}</td>
+                        <td>${diagnostico}</td>
+                        <td>${registro.veterinario || 'N/A'}</td>
+                        <td class="actions-column">
+                            <a href="/registro-medico/detalle?id=${registro.id}"><button>Ver</button></a>
+                            <button onclick="eliminarRegistro(${registro.id})" class="danger-btn">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function eliminarRegistro(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este registro médico?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/registros-medicos/${id}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al eliminar registro médico');
+                }
+
+                alert('Registro médico eliminado correctamente');
+                cargarRegistros();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

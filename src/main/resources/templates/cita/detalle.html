@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Cita - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .loading { text-align: center; padding: 2rem; }
+        .detalle-container {
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1rem 0;
+        }
+        .detalle-item {
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 6px;
+        }
+        .detalle-item label {
+            font-weight: bold;
+            color: #2e7d5b;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .detalle-item .value {
+            color: #2d3436;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detalle de Cita</h1>
+
+    <div class="nav-buttons">
+        <a href="/cita"><button>Volver a Citas</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="loading" class="loading">Cargando detalle...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div id="cita-detalle" class="detalle-container hidden">
+        <h2>Información de la Cita</h2>
+
+        <div class="detalle-item">
+            <label>ID:</label>
+            <div class="value" id="cita-id"></div>
+        </div>
+
+        <div class="detalle-item">
+            <label>Paciente:</label>
+            <div class="value" id="cita-paciente"></div>
+        </div>
+
+        <div class="detalle-item">
+            <label>Fecha:</label>
+            <div class="value" id="cita-fecha"></div>
+        </div>
+
+        <div class="detalle-item">
+            <label>Hora:</label>
+            <div class="value" id="cita-hora"></div>
+        </div>
+
+        <div class="detalle-item">
+            <label>Motivo de Consulta:</label>
+            <div class="value" id="cita-motivo"></div>
+        </div>
+
+        <div class="detalle-item">
+            <label>Veterinario Asignado:</label>
+            <div class="value" id="cita-veterinario"></div>
+        </div>
+
+        <div class="nav-buttons" style="margin-top: 2rem;">
+            <button onclick="eliminarCita()" class="danger-btn">Eliminar Cita</button>
+        </div>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación
+        requireAuth();
+
+        // Obtener ID de la cita de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const citaId = urlParams.get('id');
+
+        if (!citaId) {
+            document.getElementById('error').textContent = 'ID de cita no especificado';
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        } else {
+            cargarDetalle();
+        }
+
+        async function cargarDetalle() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const detalle = document.getElementById('cita-detalle');
+
+            try {
+                const response = await fetch(`/api/citas/${citaId}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar detalle de cita');
+                }
+
+                const cita = await response.json();
+
+                document.getElementById('cita-id').textContent = cita.id;
+                document.getElementById('cita-paciente').textContent = cita.paciente?.nombre || 'N/A';
+                document.getElementById('cita-fecha').textContent = cita.fecha || 'N/A';
+                document.getElementById('cita-hora').textContent = cita.hora || 'N/A';
+                document.getElementById('cita-motivo').textContent = cita.motivoConsulta || 'N/A';
+                document.getElementById('cita-veterinario').textContent = cita.veterinarioAsignado || 'N/A';
+
+                detalle.classList.remove('hidden');
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function eliminarCita() {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta cita?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/citas/${citaId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al eliminar cita');
+                }
+
+                alert('Cita eliminada correctamente');
+                window.location.href = '/cita';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facturas - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .loading { text-align: center; padding: 2rem; }
+        .actions-column { display: flex; gap: 0.3rem; }
+        .actions-column button { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+        .total-column { font-weight: bold; color: #2e7d5b; }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Facturas</h1>
+
+    <div class="nav-buttons">
+        <a href="/panel"><button>Volver al Panel</button></a>
+        <a href="/factura/nuevo"><button>Nueva Factura</button></a>
+        <button onclick="cargarFacturas()">Actualizar</button>
+    </div>
+
+    <div id="loading" class="loading hidden">Cargando facturas...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div id="facturas-container">
+        <h2>Lista de Facturas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Número Factura</th>
+                    <th>Paciente</th>
+                    <th>Fecha Emisión</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="facturas-body">
+                <!-- Se llenará dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación y rol ADMIN
+        requireAuth();
+        if (!hasRole('ADMIN')) {
+            window.location.href = '/acceso-denegado';
+        }
+
+        // Cargar facturas al iniciar
+        cargarFacturas();
+
+        async function cargarFacturas() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const tbody = document.getElementById('facturas-body');
+
+            loading.classList.remove('hidden');
+            error.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/facturas', {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar facturas');
+                }
+
+                const facturas = await response.json();
+                tbody.innerHTML = '';
+
+                if (facturas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay facturas registradas</td></tr>';
+                    return;
+                }
+
+                facturas.forEach(factura => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${factura.id}</td>
+                        <td>${factura.numeroFactura || 'N/A'}</td>
+                        <td>${factura.paciente?.nombre || 'N/A'}</td>
+                        <td>${factura.fechaEmision || 'N/A'}</td>
+                        <td class="total-column">$${formatearMonto(factura.montoTotal)}</td>
+                        <td>${factura.estado || 'Pendiente'}</td>
+                        <td class="actions-column">
+                            <a href="/factura/detalle?id=${factura.id}"><button>Ver</button></a>
+                            <button onclick="eliminarFactura(${factura.id})" class="danger-btn">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function formatearMonto(monto) {
+            return (monto || 0).toLocaleString('es-CL');
+        }
+
+        async function eliminarFactura(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/facturas/${id}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al eliminar factura');
+                }
+
+                alert('Factura eliminada correctamente');
+                cargarFacturas();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

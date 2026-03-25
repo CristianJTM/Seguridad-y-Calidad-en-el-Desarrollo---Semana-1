@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Factura - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .loading { text-align: center; padding: 2rem; }
+        .factura-container {
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 2px solid #2e7d5b;
+            margin: 1rem 0;
+        }
+        .factura-header {
+            border-bottom: 2px solid #d4edda;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .factura-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .info-item label {
+            font-weight: bold;
+            color: #2e7d5b;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .factura-total {
+            background-color: #d4edda;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            text-align: right;
+        }
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2e7d5b;
+        }
+        .total-amount {
+            font-size: 2rem;
+            color: #246347;
+        }
+        .descripcion-completa {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-style: italic;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detalle de Factura</h1>
+
+    <div class="nav-buttons">
+        <a href="/factura"><button>Volver a Facturas</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="loading" class="loading">Cargando detalle...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div id="factura-detalle" class="factura-container hidden">
+        <div class="factura-header">
+            <h2>Factura N° <span id="factura-numero"></span></h2>
+        </div>
+
+        <div class="factura-info">
+            <div class="info-item">
+                <label>ID:</label>
+                <div id="factura-id"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Paciente:</label>
+                <div id="factura-paciente"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Fecha de Emisión:</label>
+                <div id="factura-fecha"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Estado:</label>
+                <div id="factura-estado"></div>
+            </div>
+        </div>
+
+        <h3>Descripción de Servicios</h3>
+        <div class="descripcion-completa" id="factura-descripcion">
+            <!-- Descripción completa -->
+        </div>
+
+        <div class="factura-total">
+            <div class="total-line">
+                <span>TOTAL:</span>
+                <span class="total-amount" id="factura-total"></span>
+            </div>
+        </div>
+
+        <div class="nav-buttons" style="margin-top: 2rem;">
+            <button onclick="window.print()">Imprimir</button>
+            <button onclick="eliminarFactura()" class="danger-btn">Eliminar Factura</button>
+        </div>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación y rol ADMIN
+        requireAuth();
+        if (!hasRole('ADMIN')) {
+            window.location.href = '/acceso-denegado';
+        }
+
+        // Obtener ID de la factura de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const facturaId = urlParams.get('id');
+
+        if (!facturaId) {
+            document.getElementById('error').textContent = 'ID de factura no especificado';
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        } else {
+            cargarDetalle();
+        }
+
+        async function cargarDetalle() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const detalle = document.getElementById('factura-detalle');
+
+            try {
+                const response = await fetch(`/api/facturas/${facturaId}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar detalle de factura');
+                }
+
+                const factura = await response.json();
+
+                document.getElementById('factura-numero').textContent = factura.numeroFactura || 'N/A';
+                document.getElementById('factura-id').textContent = factura.id;
+                document.getElementById('factura-paciente').textContent = factura.paciente?.nombre || 'N/A';
+                document.getElementById('factura-fecha').textContent = factura.fechaEmision || 'N/A';
+                document.getElementById('factura-estado').textContent = factura.estado || 'Pendiente';
+                document.getElementById('factura-descripcion').textContent = factura.descripcionCompleta || 'Sin descripción';
+                document.getElementById('factura-total').textContent = '$' + formatearMonto(factura.montoTotal);
+
+                detalle.classList.remove('hidden');
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function formatearMonto(monto) {
+            return (monto || 0).toLocaleString('es-CL');
+        }
+
+        async function eliminarFactura() {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/facturas/${facturaId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al eliminar factura');
+                }
+
+                alert('Factura eliminada correctamente');
+                window.location.href = '/factura';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

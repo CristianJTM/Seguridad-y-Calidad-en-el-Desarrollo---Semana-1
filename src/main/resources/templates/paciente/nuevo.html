@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Paciente - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .form-container {
+            max-width: 600px;
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nuevo Paciente</h1>
+
+    <div class="nav-buttons">
+        <a href="/paciente"><button>Volver a Pacientes</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+    <div id="success" class="message hidden"></div>
+
+    <div class="form-container">
+        <form id="paciente-form">
+            <label>Nombre del Paciente:</label>
+            <input type="text" id="nombre" required placeholder="Ej: Max">
+
+            <label>Especie:</label>
+            <input type="text" id="especie" required placeholder="Ej: Perro, Gato">
+
+            <label>Raza:</label>
+            <input type="text" id="raza" required placeholder="Ej: Labrador">
+
+            <label>Edad (años):</label>
+            <input type="number" id="edad" min="0" step="1" required placeholder="0">
+
+            <label>Nombre del Dueño:</label>
+            <input type="text" id="dueno" required placeholder="Ej: Juan Pérez">
+
+            <br><br>
+            <button type="submit">Registrar Paciente</button>
+        </form>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación
+        requireAuth();
+
+        document.getElementById('paciente-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+
+            error.classList.add('hidden');
+            success.classList.add('hidden');
+
+            const paciente = {
+                nombre: document.getElementById('nombre').value,
+                especie: document.getElementById('especie').value,
+                raza: document.getElementById('raza').value,
+                edad: parseInt(document.getElementById('edad').value),
+                dueno: document.getElementById('dueno').value
+            };
+
+            try {
+                const response = await fetch('/api/pacientes', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify(paciente)
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al registrar paciente');
+                }
+
+                success.textContent = 'Paciente registrado correctamente';
+                success.classList.remove('hidden');
+
+                // Limpiar formulario
+                e.target.reset();
+
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/paciente';
+                }, 2000);
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

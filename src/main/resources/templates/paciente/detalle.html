@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Paciente - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .loading { text-align: center; padding: 2rem; }
+        .paciente-container {
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1rem 0;
+        }
+        .paciente-header {
+            border-bottom: 2px solid #d4edda;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .info-item label {
+            font-weight: bold;
+            color: #2e7d5b;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .related-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #d4edda;
+        }
+        .related-section h3 {
+            color: #2e7d5b;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detalle de Paciente</h1>
+
+    <div class="nav-buttons">
+        <a href="/paciente"><button>Volver a Pacientes</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="loading" class="loading">Cargando detalle...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div id="paciente-detalle" class="paciente-container hidden">
+        <div class="paciente-header">
+            <h2 id="paciente-nombre"></h2>
+        </div>
+
+        <h3>Información del Paciente</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>ID:</label>
+                <div id="paciente-id"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Especie:</label>
+                <div id="paciente-especie"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Raza:</label>
+                <div id="paciente-raza"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Edad:</label>
+                <div id="paciente-edad"></div>
+            </div>
+
+            <div class="info-item">
+                <label>Dueño:</label>
+                <div id="paciente-dueno"></div>
+            </div>
+        </div>
+
+        <div class="related-section" id="citas-section">
+            <h3>Últimas Citas</h3>
+            <div id="citas-list" class="loading">Cargando citas...</div>
+        </div>
+
+        <div class="related-section" id="registros-section">
+            <h3>Registros Médicos</h3>
+            <div id="registros-list" class="loading">Cargando registros...</div>
+        </div>
+
+        <div class="nav-buttons" style="margin-top: 2rem;">
+            <button onclick="eliminarPaciente()" class="danger-btn">Eliminar Paciente</button>
+        </div>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación
+        requireAuth();
+
+        // Obtener ID del paciente de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const pacienteId = urlParams.get('id');
+
+        if (!pacienteId) {
+            document.getElementById('error').textContent = 'ID de paciente no especificado';
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        } else {
+            cargarDetalle();
+        }
+
+        async function cargarDetalle() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const detalle = document.getElementById('paciente-detalle');
+
+            try {
+                const response = await fetch(`/api/pacientes/${pacienteId}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar detalle del paciente');
+                }
+
+                const paciente = await response.json();
+
+                document.getElementById('paciente-nombre').textContent = paciente.nombre || 'N/A';
+                document.getElementById('paciente-id').textContent = paciente.id;
+                document.getElementById('paciente-especie').textContent = paciente.especie || 'N/A';
+                document.getElementById('paciente-raza').textContent = paciente.raza || 'N/A';
+                document.getElementById('paciente-edad').textContent = (paciente.edad || 'N/A') + ' años';
+                document.getElementById('paciente-dueno').textContent = paciente.dueno || 'N/A';
+
+                detalle.classList.remove('hidden');
+
+                // Cargar citas y registros relacionados
+                cargarCitasRelacionadas();
+                if (hasAnyRole('VET', 'ADMIN')) {
+                    cargarRegistrosRelacionados();
+                } else {
+                    document.getElementById('registros-section').style.display = 'none';
+                }
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function cargarCitasRelacionadas() {
+            const citasList = document.getElementById('citas-list');
+
+            try {
+                const response = await fetch(`/api/citas?pacienteId=${pacienteId}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar citas');
+
+                const citas = await response.json();
+
+                if (citas.length === 0) {
+                    citasList.textContent = 'No hay citas registradas';
+                    return;
+                }
+
+                citasList.innerHTML = '<ul>' + citas.slice(0, 5).map(cita =>
+                    `<li><a href="/cita/detalle?id=${cita.id}">${cita.fecha} - ${cita.motivoConsulta}</a></li>`
+                ).join('') + '</ul>';
+            } catch (err) {
+                citasList.textContent = 'Error al cargar citas';
+            }
+        }
+
+        async function cargarRegistrosRelacionados() {
+            const registrosList = document.getElementById('registros-list');
+
+            try {
+                const response = await fetch(`/api/registros-medicos?pacienteId=${pacienteId}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar registros');
+
+                const registros = await response.json();
+
+                if (registros.length === 0) {
+                    registrosList.textContent = 'No hay registros médicos';
+                    return;
+                }
+
+                registrosList.innerHTML = '<ul>' + registros.slice(0, 5).map(registro =>
+                    `<li><a href="/registro-medico/detalle?id=${registro.id}">${registro.fecha} - ${registro.diagnostico?.substring(0, 50) || 'Sin diagnóstico'}</a></li>`
+                ).join('') + '</ul>';
+            } catch (err) {
+                registrosList.textContent = 'Error al cargar registros';
+            }
+        }
+
+        async function eliminarPaciente() {
+            if (!confirm('¿Estás seguro de que deseas eliminar este paciente? Esto también eliminará sus citas y registros médicos asociados.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/pacientes/${pacienteId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al eliminar paciente');
+                }
+
+                alert('Paciente eliminado correctamente');
+                window.location.href = '/paciente';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

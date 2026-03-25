@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Cita - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .form-container {
+            max-width: 600px;
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nueva Cita</h1>
+
+    <div class="nav-buttons">
+        <a href="/cita"><button>Volver a Citas</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+    <div id="success" class="message hidden"></div>
+
+    <div class="form-container">
+        <form id="cita-form">
+            <label>Paciente:</label>
+            <select id="paciente-id" required>
+                <option value="">Cargando pacientes...</option>
+            </select>
+
+            <label>Fecha:</label>
+            <input type="date" id="fecha" required>
+
+            <label>Hora:</label>
+            <input type="time" id="hora" required>
+
+            <label>Motivo de Consulta:</label>
+            <input type="text" id="motivo" required>
+
+            <label>Veterinario Asignado:</label>
+            <input type="text" id="veterinario" required>
+
+            <br><br>
+            <button type="submit">Crear Cita</button>
+        </form>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación
+        requireAuth();
+
+        // Cargar pacientes al iniciar
+        cargarPacientes();
+
+        async function cargarPacientes() {
+            const select = document.getElementById('paciente-id');
+
+            try {
+                const response = await fetch('/api/pacientes', {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar pacientes');
+                }
+
+                const pacientes = await response.json();
+                select.innerHTML = '<option value="">Selecciona un paciente</option>';
+
+                pacientes.forEach(paciente => {
+                    const option = document.createElement('option');
+                    option.value = paciente.id;
+                    option.textContent = `${paciente.nombre} (${paciente.especie})`;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                select.innerHTML = '<option value="">Error al cargar pacientes</option>';
+            }
+        }
+
+        document.getElementById('cita-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+
+            error.classList.add('hidden');
+            success.classList.add('hidden');
+
+            const cita = {
+                pacienteId: parseInt(document.getElementById('paciente-id').value),
+                fecha: document.getElementById('fecha').value,
+                hora: document.getElementById('hora').value,
+                motivoConsulta: document.getElementById('motivo').value,
+                veterinarioAsignado: document.getElementById('veterinario').value
+            };
+
+            try {
+                const response = await fetch('/api/citas', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify(cita)
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al crear cita');
+                }
+
+                success.textContent = 'Cita creada correctamente';
+                success.classList.remove('hidden');
+
+                // Limpiar formulario
+                e.target.reset();
+
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/cita';
+                }, 2000);
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

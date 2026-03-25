@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Veterinaria - Acceso Denegado</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+
+<body>
+
+<h1>Acceso Denegado</h1>
+
+<p class="error">No tienes permisos para acceder a esta sección.</p>
+
+<div class="nav-buttons">
+    <form th:action="@{/home}">
+        <button>Volver al inicio</button>
+    </form>
+</div>
+
+</body>
+</html>

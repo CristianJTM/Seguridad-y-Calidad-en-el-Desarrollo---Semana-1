@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .user-header {
+            background: #d4edda;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+        .role-badge {
+            display: inline-block;
+            background: #2e7d5b;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .menu-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #d4edda;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .menu-card:hover {
+            border-color: #2e7d5b;
+            box-shadow: 0 4px 8px rgba(46, 125, 91, 0.2);
+        }
+        .menu-card h3 {
+            color: #2e7d5b;
+            margin-bottom: 0.8rem;
+        }
+        .menu-card button {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Panel de Control - Veterinaria</h1>
+
+    <div class="user-header">
+        <p>Conectado como: <strong id="user-info"></strong>
+            <span class="role-badge" id="role-info"></span>
+        </p>
+    </div>
+
+    <div class="menu-grid" id="menu-grid">
+        <!-- Pacientes -->
+        <div class="menu-card" id="card-pacientes">
+            <h3>Pacientes</h3>
+            <p>Gestionar información de pacientes</p>
+            <a href="/paciente"><button>Ver Pacientes</button></a>
+            <a href="/paciente/nuevo"><button>Nuevo Paciente</button></a>
+        </div>
+
+        <!-- Citas -->
+        <div class="menu-card" id="card-citas">
+            <h3>Citas</h3>
+            <p>Programar y gestionar citas</p>
+            <a href="/cita"><button>Ver Citas</button></a>
+            <a href="/cita/nuevo"><button>Nueva Cita</button></a>
+        </div>
+
+        <!-- Registros Médicos -->
+        <div class="menu-card" id="card-registros" class="hidden">
+            <h3>Registros Médicos</h3>
+            <p>Historiales y diagnósticos</p>
+            <a href="/registro-medico"><button>Ver Registros</button></a>
+            <a href="/registro-medico/nuevo"><button>Nuevo Registro</button></a>
+        </div>
+
+        <!-- Facturas -->
+        <div class="menu-card" id="card-facturas" class="hidden">
+            <h3>Facturas</h3>
+            <p>Gestionar facturación</p>
+            <a href="/factura"><button>Ver Facturas</button></a>
+            <a href="/factura/nuevo"><button>Nueva Factura</button></a>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="/home"><button>Inicio</button></a>
+        <button onclick="logout()" class="danger-btn">Cerrar Sesión</button>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación
+        requireAuth();
+
+        // Mostrar información del usuario
+        displayUserInfo();
+
+        // Mostrar/ocultar opciones según el rol
+        const userData = getUserData();
+        if (userData) {
+            // Registros médicos: VET y ADMIN
+            if (hasAnyRole('VET', 'ADMIN')) {
+                document.getElementById('card-registros').classList.remove('hidden');
+            }
+
+            // Facturas: solo ADMIN
+            if (hasRole('ADMIN')) {
+                document.getElementById('card-facturas').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
