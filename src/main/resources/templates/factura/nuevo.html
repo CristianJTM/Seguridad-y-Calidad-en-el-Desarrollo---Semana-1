@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Factura - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .form-container {
+            max-width: 700px;
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nueva Factura</h1>
+
+    <div class="nav-buttons">
+        <a href="/factura"><button>Volver a Facturas</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+    <div id="success" class="message hidden"></div>
+
+    <div class="form-container">
+        <form id="factura-form">
+            <label>Número de Factura:</label>
+            <input type="text" id="numero-factura" required placeholder="Ej: F-2024-001">
+
+            <label>Paciente:</label>
+            <select id="paciente-id" required>
+                <option value="">Cargando pacientes...</option>
+            </select>
+
+            <label>Fecha de Emisión:</label>
+            <input type="date" id="fecha-emision" required>
+
+            <label>Descripción Completa de Servicios:</label>
+            <textarea id="descripcion" rows="6" required placeholder="Detalle todos los servicios realizados..."></textarea>
+
+            <label>Monto Total:</label>
+            <input type="number" id="monto-total" step="0.01" min="0" required placeholder="0.00">
+
+            <label>Estado:</label>
+            <select id="estado" required>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Pagada">Pagada</option>
+                <option value="Anulada">Anulada</option>
+            </select>
+
+            <br><br>
+            <button type="submit">Crear Factura</button>
+        </form>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación y rol ADMIN
+        requireAuth();
+        if (!hasRole('ADMIN')) {
+            window.location.href = '/acceso-denegado';
+        }
+
+        // Cargar pacientes al iniciar
+        cargarPacientes();
+
+        // Establecer fecha de hoy por defecto
+        document.getElementById('fecha-emision').valueAsDate = new Date();
+
+        async function cargarPacientes() {
+            const select = document.getElementById('paciente-id');
+
+            try {
+                const response = await fetch('/api/pacientes', {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar pacientes');
+                }
+
+                const pacientes = await response.json();
+                select.innerHTML = '<option value="">Selecciona un paciente</option>';
+
+                pacientes.forEach(paciente => {
+                    const option = document.createElement('option');
+                    option.value = paciente.id;
+                    option.textContent = `${paciente.nombre} - ${paciente.dueno}`;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                select.innerHTML = '<option value="">Error al cargar pacientes</option>';
+            }
+        }
+
+        document.getElementById('factura-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+
+            error.classList.add('hidden');
+            success.classList.add('hidden');
+
+            const factura = {
+                numeroFactura: document.getElementById('numero-factura').value,
+                pacienteId: parseInt(document.getElementById('paciente-id').value),
+                fechaEmision: document.getElementById('fecha-emision').value,
+                descripcionCompleta: document.getElementById('descripcion').value,
+                montoTotal: parseFloat(document.getElementById('monto-total').value),
+                estado: document.getElementById('estado').value
+            };
+
+            try {
+                const response = await fetch('/api/facturas', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify(factura)
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al crear factura');
+                }
+
+                success.textContent = 'Factura creada correctamente';
+                success.classList.remove('hidden');
+
+                // Limpiar formulario
+                e.target.reset();
+                document.getElementById('fecha-emision').valueAsDate = new Date();
+
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/factura';
+                }, 2000);
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

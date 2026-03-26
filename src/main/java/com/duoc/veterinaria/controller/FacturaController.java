@@ -16,9 +16,10 @@ import com.duoc.veterinaria.model.factura.FacturaEntity;
 import com.duoc.veterinaria.model.paciente.Paciente;
 import com.duoc.veterinaria.service.FacturaService;
 import com.duoc.veterinaria.service.PacienteService;
+import com.duoc.veterinaria.service.UsuarioService;
 
 @Controller
-@RequestMapping("/facturas")
+@RequestMapping("/factura")
 public class FacturaController {
     
     @Autowired
@@ -27,8 +28,14 @@ public class FacturaController {
     @Autowired
     private PacienteService pacienteService;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     private List<String> obtenerVeterinariosDisponibles() {
-        return List.of("Veterinario 1", "Veterinario 2", "Veterinario 3");
+        return usuarioService.obtenerVeterinarios()
+                .stream()
+                .map(veterinario -> veterinario.getUsername())
+                .toList();
     }
     
     @GetMapping
@@ -36,12 +43,17 @@ public class FacturaController {
         model.addAttribute("facturas", facturaService.obtenerTodas());
         model.addAttribute("pacientes", pacienteService.obtenerPacientes());
         model.addAttribute("veterinarios", obtenerVeterinariosDisponibles());
-        return "facturas";
+        return "factura/index";
     }
     
-    @GetMapping("/nueva")
-    public String mostrarFormularioNueva(Model model) {
-        return "redirect:/facturas";
+    @GetMapping({"/nueva", "/nuevo"})
+    public String mostrarFormularioNueva() {
+        return "factura/nuevo";
+    }
+
+    @GetMapping("/detalle")
+    public String mostrarDetalle() {
+        return "factura/detalle";
     }
     
     @PostMapping
@@ -73,7 +85,7 @@ public class FacturaController {
                 veterinarioResponsable,
                 notas
         );
-        return "redirect:/facturas";
+        return "redirect:/factura";
     }
     
     @GetMapping("/{id}")
@@ -83,9 +95,9 @@ public class FacturaController {
                     model.addAttribute("factura", factura);
                     model.addAttribute("pacientes", pacienteService.obtenerPacientes());
                     model.addAttribute("veterinarios", obtenerVeterinariosDisponibles());
-                    return "detalle-factura";
+                    return "factura/detalle";
                 })
-                .orElse("redirect:/facturas");
+                .orElse("redirect:/factura");
     }
 
     @PostMapping("/{id}/actualizar")
@@ -102,21 +114,21 @@ public class FacturaController {
             facturaEntity.setNotas(notas);
             facturaService.guardarFactura(facturaEntity);
         });
-        return "redirect:/facturas/" + id;
+        return "redirect:/factura/" + id;
     }
     
     @PostMapping("/{id}/medicamento")
     public String agregarMedicamento(@PathVariable Long id,
                                     @RequestParam double costo) {
         facturaService.agregarCosto(id, costo, "Medicamento");
-        return "redirect:/facturas/" + id;
+        return "redirect:/factura/" + id;
     }
     
     @PostMapping("/{id}/tratamiento")
     public String agregarTratamiento(@PathVariable Long id,
                                     @RequestParam double costo) {
         facturaService.agregarCosto(id, costo, "Tratamiento");
-        return "redirect:/facturas/" + id;
+        return "redirect:/factura/" + id;
     }
 
     @PostMapping("/{id}/insumo")
@@ -124,7 +136,7 @@ public class FacturaController {
                                 @RequestParam String nombreInsumo,
                                 @RequestParam double costo) {
         facturaService.agregarCosto(id, costo, "Insumo: " + nombreInsumo);
-        return "redirect:/facturas/" + id;
+        return "redirect:/factura/" + id;
     }
     
     @PostMapping("/{id}/servicio")
@@ -132,12 +144,12 @@ public class FacturaController {
                                  @RequestParam double costo,
                                  @RequestParam String tipoServicio) {
         facturaService.agregarCosto(id, costo, tipoServicio);
-        return "redirect:/facturas/" + id;
+        return "redirect:/factura/" + id;
     }
     
     @PostMapping("/{id}/eliminar")
     public String eliminarFactura(@PathVariable Long id) {
         facturaService.eliminarFactura(id);
-        return "redirect:/facturas";
+        return "redirect:/factura";
     }
 }

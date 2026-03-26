@@ -2,6 +2,7 @@ package com.duoc.veterinaria.model.factura;
 
 import com.duoc.veterinaria.model.paciente.Paciente;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "facturas")
@@ -28,6 +29,14 @@ public class FacturaEntity implements Factura {
 
     @Column(length = 500)
     private String notas;
+
+    @Column(name = "numero_factura")
+    private String numeroFactura;
+
+    @Column(name = "fecha_emision")
+    private LocalDate fechaEmision;
+
+    private String estado;
 
     public FacturaEntity() {
     }
@@ -99,5 +108,29 @@ public class FacturaEntity implements Factura {
 
     public void setNotas(String notas) {
         this.notas = notas;
+    }
+
+    public String getNumeroFactura() {
+        return numeroFactura;
+    }
+
+    public void setNumeroFactura(String numeroFactura) {
+        this.numeroFactura = numeroFactura;
+    }
+
+    public LocalDate getFechaEmision() {
+        return fechaEmision;
+    }
+
+    public void setFechaEmision(LocalDate fechaEmision) {
+        this.fechaEmision = fechaEmision;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

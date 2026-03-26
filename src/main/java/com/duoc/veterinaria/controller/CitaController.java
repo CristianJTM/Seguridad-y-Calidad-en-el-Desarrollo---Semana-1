@@ -21,20 +21,20 @@ public class CitaController {
     @Autowired
     private PacienteService pacienteService;
 
-    @GetMapping("/citas")
+    @GetMapping("/cita")
     public String listarCitas(Model model) {
         model.addAttribute("citas", citaService.obtenerCitas());
         model.addAttribute("pacientes", pacienteService.obtenerPacientes());
-        return "citas";
+        return "cita/index";
     }
 
-    @GetMapping("/citas/nueva")
+    @GetMapping("/cita/nuevo")
     public String mostrarFormularioNuevaCita(Model model) {
         model.addAttribute("cita", new Cita());
-        return "nueva_cita";
+        return "cita/nuevo";
     }
 
-    @PostMapping("/citas")
+    @PostMapping("/cita")
     public String guardarCita(Long pacienteId, String fecha, String hora, String motivoConsulta, String veterinarioAsignado, Principal principal) {
         Paciente paciente = pacienteService.buscarPorId(pacienteId);
 
@@ -48,6 +48,6 @@ public class CitaController {
 
         citaService.guardarCita(cita);
 
-        return "redirect:/citas";
+        return "redirect:/cita";
     }
 }

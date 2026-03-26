@@ -33,6 +33,15 @@ public class RegistroMedico {
     
     private String veterinarioResponsable;
 
+    @Column(length = 1000)
+    private String motivoConsulta;
+
+    @Column(length = 1000)
+    private String sintomas;
+
+    @Column(length = 1000)
+    private String observaciones;
+
     public RegistroMedico() {
     }
 
@@ -124,5 +133,29 @@ public class RegistroMedico {
 
     public void setVeterinarioResponsable(String veterinarioResponsable) {
         this.veterinarioResponsable = veterinarioResponsable;
+    }
+
+    public String getMotivoConsulta() {
+        return motivoConsulta;
+    }
+
+    public void setMotivoConsulta(String motivoConsulta) {
+        this.motivoConsulta = motivoConsulta;
+    }
+
+    public String getSintomas() {
+        return sintomas;
+    }
+
+    public void setSintomas(String sintomas) {
+        this.sintomas = sintomas;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
     }
 }

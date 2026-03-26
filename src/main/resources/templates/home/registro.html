@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Registro</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Registro de Usuario</h1>
+
+    <div id="registro-error" class="error hidden"></div>
+    <div id="registro-success" class="message hidden"></div>
+
+    <form id="registro-form">
+        <label>Usuario:</label>
+        <input type="text" id="username" required minlength="3">
+
+        <label>Contraseña:</label>
+        <input type="password" id="password" required minlength="6">
+
+        <label>Confirmar Contraseña:</label>
+        <input type="password" id="password-confirm" required minlength="6">
+
+        <label>Nombre Completo:</label>
+        <input type="text" id="fullname" required>
+
+        <label>Email:</label>
+        <input type="email" id="email" required>
+
+        <br><br>
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <br>
+    <div class="nav-buttons">
+        <a href="/home">
+            <button>Volver al Inicio</button>
+        </a>
+        <a href="/login">
+            <button>Ya tengo cuenta</button>
+        </a>
+    </div>
+
+    <script>
+        // Verificar si ya está autenticado
+        if (localStorage.getItem('jwt_token')) {
+            window.location.href = '/panel';
+        }
+
+        document.getElementById('registro-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password-confirm').value;
+            const errorDiv = document.getElementById('registro-error');
+            const successDiv = document.getElementById('registro-success');
+
+            // Ocultar mensajes previos
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            // Validar contraseñas
+            if (password !== passwordConfirm) {
+                errorDiv.textContent = 'Las contraseñas no coinciden';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            const userData = {
+                username: document.getElementById('username').value,
+                password: password,
+                fullname: document.getElementById('fullname').value,
+                email: document.getElementById('email').value
+            };
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    errorDiv.textContent = data.message || 'Error al registrar usuario';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                successDiv.textContent = 'Registro exitoso. Redirigiendo al login...';
+                successDiv.classList.remove('hidden');
+
+                // Redirigir al login después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            } catch (error) {
+                errorDiv.textContent = 'Error al conectar con el servidor';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+    <style>
+        .hidden { display: none; }
+        #registro-form { max-width: 500px; }
+    </style>
+</body>
+</html>

@@ -14,21 +14,26 @@ public class PacienteController {
     @Autowired
     private PacienteService pacienteService;
 
-    @GetMapping("/pacientes")
+    @GetMapping("/paciente")
     public String listarPacientes(Model model) {
         model.addAttribute("pacientes", pacienteService.obtenerPacientes());
-        return "pacientes";
+        return "paciente/index";
     }
 
-    @GetMapping("/pacientes/nuevo")
+    @GetMapping("/paciente/nuevo")
     public String mostrarFormularioNuevoPaciente(Model model) {
         model.addAttribute("paciente", new Paciente());
-        return "nuevo_paciente";
+        return "paciente/nuevo";
     }
 
-    @PostMapping("/pacientes")
+    @GetMapping("/paciente/detalle")
+    public String mostrarDetallePaciente() {
+        return "paciente/detalle";
+    }
+
+    @PostMapping("/paciente")
     public String guardarPaciente(Paciente paciente) {
         pacienteService.guardarPaciente(paciente);
-        return "redirect:/pacientes";
+        return "redirect:/paciente";
     }
 }

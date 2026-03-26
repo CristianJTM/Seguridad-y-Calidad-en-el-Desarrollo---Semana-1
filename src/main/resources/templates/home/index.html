@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Inicio</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Bienvenido a la Veterinaria</h1>
+
+    <div id="guest-section">
+        <p>Sistema de gestión veterinaria</p>
+        <div class="nav-buttons">
+            <a href="/login">
+                <button>Iniciar Sesión</button>
+            </a>
+            <a href="/registro">
+                <button>Registrarse</button>
+            </a>
+        </div>
+    </div>
+
+    <div id="auth-section" class="hidden">
+        <p>Conectado como: <strong id="user-info"></strong> (Rol: <span id="role-info"></span>)</p>
+        <div class="nav-buttons">
+            <a href="/panel">
+                <button>Ir al Panel</button>
+            </a>
+            <button onclick="cerrarSesion()" class="danger-btn">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <script>
+        // Verificar si hay token guardado
+        const token = localStorage.getItem('jwt_token');
+        if (token) {
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            document.getElementById('user-info').textContent = userData.username || 'Usuario';
+            document.getElementById('role-info').textContent = userData.role || 'N/A';
+            document.getElementById('guest-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_data');
+            window.location.reload();
+        }
+    </script>
+    <style>
+        .hidden { display: none; }
+    </style>
+</body>
+</html>

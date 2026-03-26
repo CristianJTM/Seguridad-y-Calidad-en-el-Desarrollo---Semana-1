@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Registro Médico - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .form-container {
+            max-width: 800px;
+            background-color: #f9fff8;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1rem 0;
+        }
+        .form-section {
+            margin: 1.5rem 0;
+            padding-top: 1rem;
+            border-top: 1px solid #d4edda;
+        }
+        .form-section:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+        .form-section h3 {
+            color: #2e7d5b;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nuevo Registro Médico</h1>
+
+    <div class="nav-buttons">
+        <a href="/registro-medico"><button>Volver a Registros</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+    <div id="success" class="message hidden"></div>
+
+    <div class="form-container">
+        <form id="registro-form">
+            <div class="form-section">
+                <h3>Información General</h3>
+
+                <label>Paciente:</label>
+                <select id="paciente-id" required>
+                    <option value="">Cargando pacientes...</option>
+                </select>
+
+                <label>Fecha:</label>
+                <input type="date" id="fecha" required>
+
+                <label>Veterinario:</label>
+                <select id="veterinario" required>
+                    <option value="">Cargando veterinarios...</option>
+                </select>
+            </div>
+
+            <div class="form-section">
+                <h3>Motivo de Consulta</h3>
+                <textarea id="motivo-consulta" rows="3" required placeholder="Describe el motivo de la visita..."></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3>Síntomas</h3>
+                <textarea id="sintomas" rows="4" required placeholder="Lista los síntomas observados..."></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3>Diagnóstico</h3>
+                <textarea id="diagnostico" rows="4" required placeholder="Diagnóstico del veterinario..."></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3>Tratamiento</h3>
+                <textarea id="tratamiento" rows="5" required placeholder="Tratamiento prescrito (medicamentos, dosis, duración)..."></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3>Observaciones Adicionales</h3>
+                <textarea id="observaciones" rows="3" placeholder="Notas adicionales (opcional)..."></textarea>
+            </div>
+
+            <br>
+            <button type="submit">Crear Registro Médico</button>
+        </form>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación y rol VET o ADMIN
+        requireAuth();
+        if (!hasAnyRole('VET', 'ADMIN')) {
+            window.location.href = '/acceso-denegado';
+        }
+
+        const userData = getUserData();
+
+        // Cargar pacientes y especialistas
+        cargarPacientes();
+        cargarVeterinarios();
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        // Establecer nombre del veterinario actual
+        if (userData) {
+            document.getElementById('veterinario').value = userData.username;
+        }
+
+        async function cargarVeterinarios() {
+            const select = document.getElementById('veterinario');
+            try {
+                const response = await fetch('/api/veterinarios', {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar veterinarios');
+                }
+
+                const veterinarios = await response.json();
+                select.innerHTML = '<option value="">Selecciona un veterinario</option>';
+
+                veterinarios.forEach(veterinario => {
+                    const option = document.createElement('option');
+                    option.value = veterinario.username;
+                    option.textContent = veterinario.username;
+                    select.appendChild(option);
+                });
+
+                if (userData) {
+                    select.value = userData.username;
+                }
+            } catch (err) {
+                select.innerHTML = '<option value="">Error al cargar veterinarios</option>';
+            }
+        }
+
+        async function cargarPacientes() {
+            const select = document.getElementById('paciente-id');
+
+            try {
+                const response = await fetch('/api/pacientes', {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar pacientes');
+                }
+
+                const pacientes = await response.json();
+                select.innerHTML = '<option value="">Selecciona un paciente</option>';
+
+                pacientes.forEach(paciente => {
+                    const option = document.createElement('option');
+                    option.value = paciente.id;
+                    option.textContent = `${paciente.nombre} (${paciente.especie} - ${paciente.dueno})`;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                select.innerHTML = '<option value="">Error al cargar pacientes</option>';
+            }
+        }
+
+        document.getElementById('registro-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+
+            error.classList.add('hidden');
+            success.classList.add('hidden');
+
+            const registro = {
+                pacienteId: parseInt(document.getElementById('paciente-id').value),
+                fecha: document.getElementById('fecha').value,
+                veterinario: document.getElementById('veterinario').value,
+                motivoConsulta: document.getElementById('motivo-consulta').value,
+                sintomas: document.getElementById('sintomas').value,
+                diagnostico: document.getElementById('diagnostico').value,
+                tratamiento: document.getElementById('tratamiento').value,
+                observaciones: document.getElementById('observaciones').value || ''
+            };
+
+            try {
+                const response = await fetch('/api/registros-medicos', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify(registro)
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al crear registro médico');
+                }
+
+                success.textContent = 'Registro médico creado correctamente';
+                success.classList.remove('hidden');
+
+                // Limpiar formulario
+                e.target.reset();
+                document.getElementById('fecha').valueAsDate = new Date();
+                if (userData) {
+                    document.getElementById('veterinario').value = userData.username;
+                }
+
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/registro-medico';
+                }, 2000);
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

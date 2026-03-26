@@ -1,4 +1,4 @@
-# Analisis de la Aplicacion Veterinaria
+git # Analisis de la Aplicacion Veterinaria
 
 ## 1. Descripcion de la aplicacion y su proposito
 La aplicacion es un sistema web de gestion para una veterinaria que permite:
@@ -328,3 +328,10 @@ depends_on:
 **Solución**: El volumen `mysql_data` debería persistir datos. Si lo eliminaste con `-v`, se pierden.
 
 ---
+
+## 5. Correr el Local
+
+### 5.1 Crear la base de datos
+### 5.2 Cargar variables de .env
+### 5.3 Correr con mvn
+**Comando simplificado** set -a && source .env && export DB_HOST=127.0.0.1 && ./mvnw spring-boot:run

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Registro Médico - Veterinaria</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .hidden { display: none; }
+        .loading { text-align: center; padding: 2rem; }
+        .medical-section {
+            background-color: #f9fff8;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #d4edda;
+            margin: 1.5rem 0;
+        }
+        .medical-section h3 {
+            color: #2e7d5b;
+            margin-bottom: 1rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .info-item label {
+            font-weight: bold;
+            color: #2e7d5b;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .text-content {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detalle de Registro Médico</h1>
+
+    <div class="nav-buttons">
+        <a href="/registro-medico"><button>Volver a Registros</button></a>
+        <a href="/panel"><button>Panel</button></a>
+    </div>
+
+    <div id="loading" class="loading">Cargando detalle...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div id="registro-detalle" class="hidden">
+        <div class="medical-section">
+            <h3>Información General</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>ID:</label>
+                    <div id="registro-id"></div>
+                </div>
+                <div class="info-item">
+                    <label>Paciente:</label>
+                    <div id="registro-paciente"></div>
+                </div>
+                <div class="info-item">
+                    <label>Fecha:</label>
+                    <div id="registro-fecha"></div>
+                </div>
+                <div class="info-item">
+                    <label>Veterinario:</label>
+                    <div id="registro-veterinario"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="medical-section">
+            <h3>Motivo de Consulta</h3>
+            <div class="text-content" id="registro-motivo"></div>
+        </div>
+
+        <div class="medical-section">
+            <h3>Síntomas</h3>
+            <div class="text-content" id="registro-sintomas"></div>
+        </div>
+
+        <div class="medical-section">
+            <h3>Diagnóstico</h3>
+            <div class="text-content" id="registro-diagnostico"></div>
+        </div>
+
+        <div class="medical-section">
+            <h3>Tratamiento</h3>
+            <div class="text-content" id="registro-tratamiento"></div>
+        </div>
+
+        <div class="medical-section">
+            <h3>Observaciones</h3>
+            <div class="text-content" id="registro-observaciones"></div>
+        </div>
+
+        <div class="nav-buttons" style="margin-top: 2rem;">
+            <button onclick="window.print()">Imprimir</button>
+            <button onclick="eliminarRegistro()" class="danger-btn">Eliminar Registro</button>
+        </div>
+    </div>
+
+    <script src="/auth-utils.js"></script>
+    <script>
+        // Verificar autenticación y rol VET o ADMIN
+        requireAuth();
+        if (!hasAnyRole('VET', 'ADMIN')) {
+            window.location.href = '/acceso-denegado';
+        }
+
+        // Obtener ID del registro de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const registroId = urlParams.get('id');
+
+        if (!registroId) {
+            document.getElementById('error').textContent = 'ID de registro no especificado';
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        } else {
+            cargarDetalle();
+        }
+
+        async function cargarDetalle() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const detalle = document.getElementById('registro-detalle');
+
+            try {
+                const response = await fetch(`/api/registros-medicos/${registroId}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al cargar detalle del registro médico');
+                }
+
+                const registro = await response.json();
+
+                document.getElementById('registro-id').textContent = registro.id;
+                document.getElementById('registro-paciente').textContent = registro.paciente?.nombre || 'N/A';
+                document.getElementById('registro-fecha').textContent = registro.fecha || 'N/A';
+                document.getElementById('registro-veterinario').textContent = registro.veterinario || 'N/A';
+                document.getElementById('registro-motivo').textContent = registro.motivoConsulta || 'Sin información';
+                document.getElementById('registro-sintomas').textContent = registro.sintomas || 'Sin información';
+                document.getElementById('registro-diagnostico').textContent = registro.diagnostico || 'Sin información';
+                document.getElementById('registro-tratamiento').textContent = registro.tratamiento || 'Sin información';
+                document.getElementById('registro-observaciones').textContent = registro.observaciones || 'Sin observaciones';
+
+                detalle.classList.remove('hidden');
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function eliminarRegistro() {
+            if (!confirm('¿Estás seguro de que deseas eliminar este registro médico?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/registros-medicos/${registroId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    if (handleAuthError(response)) return;
+                    throw new Error('Error al eliminar registro médico');
+                }
+
+                alert('Registro médico eliminado correctamente');
+                window.location.href = '/registro-medico';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
